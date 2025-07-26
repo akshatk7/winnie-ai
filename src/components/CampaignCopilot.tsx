@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Brain, User, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { TrendingUp, TrendingDown, Brain, User, CheckCircle, AlertTriangle, Save, History, RotateCcw, ArrowRight } from 'lucide-react';
 import { mockData, hypothesesData, proposalOptions } from '@/data/mockData';
 import finnyLogo from '@/assets/finny-logo.png';
+import { useToast } from '@/hooks/use-toast';
 import Dashboard from './Dashboard';
 import ChatDiagnosis from './ChatDiagnosis';
 import ProposalChoice from './ProposalChoice';
@@ -24,6 +26,15 @@ export type WorkflowStage =
   | 'approvals' 
   | 'final_send';
 
+interface SavedProposal {
+  id: string;
+  name: string;
+  selectedOption: number;
+  stage: WorkflowStage;
+  timestamp: Date;
+  state: Partial<CopilotState>;
+}
+
 interface CopilotState {
   stage: WorkflowStage;
   selectedOption: number | null;
@@ -37,6 +48,7 @@ interface CopilotState {
     experiment: boolean;
     design: boolean;
   };
+  savedProposals: SavedProposal[];
 }
 
 const CampaignCopilot: React.FC = () => {
@@ -48,8 +60,11 @@ const CampaignCopilot: React.FC = () => {
       brief: false,
       experiment: false,
       design: false
-    }
+    },
+    savedProposals: []
   });
+
+  const { toast } = useToast();
 
   const updateStage = (newStage: WorkflowStage) => {
     setState(prev => ({ ...prev, stage: newStage }));
@@ -82,6 +97,75 @@ const CampaignCopilot: React.FC = () => {
       ...prev,
       approvals: { ...prev.approvals, [type]: value }
     }));
+  };
+
+  const saveProposal = (name: string) => {
+    if (state.selectedOption === null) return;
+    
+    const newProposal: SavedProposal = {
+      id: Date.now().toString(),
+      name,
+      selectedOption: state.selectedOption,
+      stage: state.stage,
+      timestamp: new Date(),
+      state: {
+        selectedOption: state.selectedOption,
+        chatMessages: state.chatMessages,
+        approvals: state.approvals
+      }
+    };
+    
+    setState(prev => ({
+      ...prev,
+      savedProposals: [...prev.savedProposals, newProposal]
+    }));
+    
+    toast({
+      title: "Proposal Saved",
+      description: `"${name}" has been saved for later review.`
+    });
+  };
+
+  const loadProposal = (proposal: SavedProposal) => {
+    setState(prev => ({
+      ...prev,
+      selectedOption: proposal.selectedOption,
+      stage: proposal.stage,
+      chatMessages: proposal.state.chatMessages || [],
+      approvals: proposal.state.approvals || prev.approvals
+    }));
+    
+    toast({
+      title: "Proposal Loaded",
+      description: `"${proposal.name}" has been loaded.`
+    });
+  };
+
+  const startOver = () => {
+    setState({
+      stage: 'dashboard',
+      selectedOption: null,
+      chatMessages: [],
+      approvals: {
+        brief: false,
+        experiment: false,
+        design: false
+      },
+      savedProposals: state.savedProposals // Keep saved proposals
+    });
+    
+    toast({
+      title: "Starting Over",
+      description: "Workflow has been reset to the beginning."
+    });
+  };
+
+  const goToNextStage = () => {
+    const stages: WorkflowStage[] = ['dashboard', 'chat_diag', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'];
+    const currentIndex = stages.indexOf(state.stage);
+    if (currentIndex < stages.length - 1) {
+      updateStage(stages[currentIndex + 1]);
+    }
   };
 
   const renderCurrentStage = () => {
@@ -161,6 +245,105 @@ const CampaignCopilot: React.FC = () => {
               <img src={finnyLogo} alt="Finny" className="h-8 w-auto" />
               <div className="h-6 w-px bg-border" />
               <h1 className="text-xl font-semibold text-foreground">AI Campaign Copilot</h1>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-3">
+              {/* Save Proposal Button */}
+              {(state.stage === 'proposal_choice' || state.stage === 'brief_review') && state.selectedOption !== null && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Save className="w-4 h-4 mr-2" />
+                      Save for Later
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Save Proposal</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium">Proposal Name</label>
+                        <input
+                          type="text"
+                          className="w-full mt-1 px-3 py-2 border rounded-md"
+                          placeholder="e.g., Holiday Winback Campaign"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const input = e.target as HTMLInputElement;
+                              if (input.value.trim()) {
+                                saveProposal(input.value.trim());
+                                input.value = '';
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                      <Button 
+                        onClick={(e) => {
+                          const input = (e.target as HTMLElement).closest('.space-y-4')?.querySelector('input') as HTMLInputElement;
+                          if (input?.value.trim()) {
+                            saveProposal(input.value.trim());
+                            input.value = '';
+                          }
+                        }}
+                        className="w-full"
+                      >
+                        Save Proposal
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              {/* Proposals Tracker */}
+              {state.savedProposals.length > 0 && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <History className="w-4 h-4 mr-2" />
+                      Proposals ({state.savedProposals.length})
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Saved Proposals</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {state.savedProposals.map((proposal) => (
+                        <Card key={proposal.id} className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{proposal.name}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Option {proposal.selectedOption + 1} • {proposal.timestamp.toLocaleDateString()}
+                              </p>
+                            </div>
+                            <Button size="sm" onClick={() => loadProposal(proposal)}>
+                              Load
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              {/* Start Over Button */}
+              <Button variant="ghost" size="sm" onClick={startOver}>
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Start Over
+              </Button>
+
+              {/* Next Step Button */}
+              {state.stage !== 'final_send' && (
+                <Button size="sm" onClick={goToNextStage}>
+                  Next Step
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              )}
             </div>
             
             {/* Stage Progress */}
