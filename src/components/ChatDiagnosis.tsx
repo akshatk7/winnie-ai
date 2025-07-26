@@ -14,16 +14,14 @@ interface ChatMessage {
 
 interface ChatDiagnosisProps {
   messages: ChatMessage[];
-  hasAnalyzed: boolean;
   onAddMessage: (role: 'user' | 'assistant', content: string) => void;
-  onAnalysisComplete: () => void;
-  onNext: (budget: number) => void;
+  onNext: () => void;
 }
 
-const ChatDiagnosis: React.FC<ChatDiagnosisProps> = ({ messages, hasAnalyzed, onAddMessage, onAnalysisComplete, onNext }) => {
+const ChatDiagnosis: React.FC<ChatDiagnosisProps> = ({ messages, onAddMessage, onNext }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [budget, setBudget] = useState<number>(50000);
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
   useEffect(() => {
     // Auto-start the conversation
@@ -50,7 +48,7 @@ Let me break down the likely causes with data-driven hypotheses...`;
         
         onAddMessage('assistant', analysisResponse);
         setIsLoading(false);
-        onAnalysisComplete();
+        setHasAnalyzed(true);
       }, 2000);
     }
   }, [messages, hasAnalyzed, onAddMessage]);
@@ -175,21 +173,9 @@ Let me break down the likely causes with data-driven hypotheses...`;
           ))}
           
           {hasAnalyzed && (
-            <div className="space-y-4 mt-6">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Campaign Budget</label>
-                <Input
-                  type="number"
-                  value={budget}
-                  onChange={(e) => setBudget(Number(e.target.value))}
-                  placeholder="Enter budget amount"
-                  className="w-full"
-                />
-              </div>
-              <Button onClick={() => onNext(budget)} className="w-full">
-                Generate Recommended Campaign
-              </Button>
-            </div>
+            <Button onClick={onNext} className="w-full mt-6">
+              View Recommended Solutions
+            </Button>
           )}
         </CardContent>
       </Card>

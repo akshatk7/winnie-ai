@@ -13,23 +13,7 @@ interface FinalSendProps {
 const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
   const { toast } = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
-  
-  // Debug logging
-  console.log('FinalSend - selectedOption:', selectedOption);
-  console.log('FinalSend - proposalOptions:', proposalOptions);
-  
   const option = selectedOption !== null ? proposalOptions[selectedOption] : null;
-  console.log('FinalSend - option:', option);
-  
-  // Fallback data if option is null
-  const fallbackOption = {
-    reach: 18234,
-    expected_reactivations: 3647,
-    cost: 25000,
-    option: 'Security-First Approach'
-  };
-  
-  const displayOption = option || fallbackOption;
 
   useEffect(() => {
     // Show success animation
@@ -72,8 +56,8 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
       }
     },
     fatigue_score: 0.28,
-    expected_reach: displayOption.reach,
-    budget_cap: displayOption.cost,
+    expected_reach: option?.reach || 18234,
+    budget_cap: option?.cost || 25000,
     experiment_config: {
       holdout_percentage: 10,
       primary_kpi: "30_day_card_swipe_rate",
@@ -141,11 +125,7 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
               <div>
                 <h2 className="text-2xl font-bold text-success">🎉 Campaign Successfully Launched!</h2>
                 <p className="text-muted-foreground">
-                  Your {displayOption.option.toLowerCase()} campaign is now live and reaching {displayOption.reach.toLocaleString()} users via Braze
-                </p>
-                {/* Debug info - remove after fixing */}
-                <p className="text-xs text-muted-foreground mt-2">
-                  Debug: selectedOption={selectedOption}, hasOption={option ? 'yes' : 'no'}
+                  Your {option?.option.toLowerCase()} campaign is now live and reaching {option?.reach.toLocaleString()} users via Braze
                 </p>
               </div>
             </div>
@@ -158,7 +138,7 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
         <Card>
           <CardContent className="p-6 text-center">
             <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-            <p className="text-3xl font-bold">{displayOption.reach.toLocaleString()}</p>
+            <p className="text-3xl font-bold">{option?.reach.toLocaleString()}</p>
             <p className="text-sm text-muted-foreground">Users Reached</p>
           </CardContent>
         </Card>
@@ -166,7 +146,7 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
         <Card>
           <CardContent className="p-6 text-center">
             <BarChart3 className="h-8 w-8 text-success mx-auto mb-2" />
-            <p className="text-3xl font-bold">{displayOption.expected_reactivations.toLocaleString()}</p>
+            <p className="text-3xl font-bold">{option?.expected_reactivations.toLocaleString()}</p>
             <p className="text-sm text-muted-foreground">Expected Reactivations</p>
           </CardContent>
         </Card>
@@ -182,7 +162,7 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
         <Card>
           <CardContent className="p-6 text-center">
             <Rocket className="h-8 w-8 text-warning mx-auto mb-2" />
-            <p className="text-3xl font-bold">${displayOption.cost.toLocaleString()}</p>
+            <p className="text-3xl font-bold">${option?.cost.toLocaleString()}</p>
             <p className="text-sm text-muted-foreground">Total Investment</p>
           </CardContent>
         </Card>
