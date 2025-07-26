@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { TrendingUp, Users, DollarSign, Target, Bot, MousePointer2 } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Target, Bot, BarChart3, Eye, FileText } from 'lucide-react';
 import { CampaignAction, ActionVariant, messagingActions, promotionalActions } from '@/data/actionLibrary';
 import UserProfileModal from './UserProfileModal';
+import TemplatePreviewModal from './TemplatePreviewModal';
 
 interface CampaignMetrics {
   totalReach: number;
@@ -38,6 +39,8 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
 }) => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [selectedActionForAnalysis, setSelectedActionForAnalysis] = useState<SelectedAction | null>(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [selectedActionForTemplate, setSelectedActionForTemplate] = useState<SelectedAction | null>(null);
   
   const formatCurrency = (amount: number) => 
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -104,9 +107,20 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
     return users;
   };
 
-  const handleActionDoubleClick = (selectedAction: SelectedAction) => {
+  const handleUserDeepDive = (selectedAction: SelectedAction) => {
     setSelectedActionForAnalysis(selectedAction);
     setShowUserModal(true);
+  };
+
+  const handleTemplatePreview = (selectedAction: SelectedAction) => {
+    setSelectedActionForTemplate(selectedAction);
+    setShowTemplateModal(true);
+  };
+
+  const isMessagingAction = (action: CampaignAction) => {
+    const actionName = action.name.toLowerCase();
+    return actionName.includes('email') || actionName.includes('sms') || 
+           actionName.includes('push') || actionName.includes('in-app');
   };
 
   return (
@@ -192,53 +206,69 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
           {selectedActions.map((selectedAction, index) => (
             <div key={`${selectedAction.action.id}-${selectedAction.variant.id}`}>
               {index > 0 && <Separator className="my-4" />}
-              <div 
-                className="flex items-start justify-between p-3 rounded-lg border border-transparent hover:border-border hover:bg-accent/50 cursor-pointer transition-all duration-200 group"
-                onDoubleClick={() => handleActionDoubleClick(selectedAction)}
-                title="Double-click to see targeted users analysis"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="text-2xl">{selectedAction.action.icon}</div>
-                    <div>
-                      <h4 className="font-semibold flex items-center gap-2">
-                        {selectedAction.action.name}
-                        <MousePointer2 className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedAction.variant.name}
-                      </p>
+              <div className="p-4 rounded-lg border hover:border-border hover:bg-accent/30 transition-all duration-200">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="text-2xl">{selectedAction.action.icon}</div>
+                      <div>
+                        <h4 className="font-semibold">
+                          {selectedAction.action.name}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedAction.variant.name}
+                        </p>
+                      </div>
+                      <Badge variant="secondary" className="ml-auto">
+                        {selectedAction.action.category}
+                      </Badge>
                     </div>
-                    <Badge variant="secondary" className="ml-auto">
-                      {selectedAction.action.category}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {selectedAction.variant.description}
-                  </p>
-                  
-                  <div className="flex gap-4 text-sm">
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      <span>{selectedAction.variant.reach.toLocaleString()} users</span>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {selectedAction.variant.description}
+                    </p>
+                    
+                    <div className="flex gap-4 text-sm mb-4">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        <span>{selectedAction.variant.reach.toLocaleString()} users</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Target className="h-3 w-3" />
+                        <span>{selectedAction.variant.expectedImpact}% impact</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="h-3 w-3" />
+                        <span>
+                          {selectedAction.variant.cost === 0 
+                            ? 'Free' 
+                            : `${formatCurrency(selectedAction.variant.cost)} per user`
+                          }
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Target className="h-3 w-3" />
-                      <span>{selectedAction.variant.expectedImpact}% impact</span>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUserDeepDive(selectedAction)}
+                        className="flex items-center gap-2"
+                      >
+                        <BarChart3 className="h-3 w-3" />
+                        User Deep Dive
+                      </Button>
+                      {isMessagingAction(selectedAction.action) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleTemplatePreview(selectedAction)}
+                          className="flex items-center gap-2"
+                        >
+                          <FileText className="h-3 w-3" />
+                          View Templates
+                        </Button>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" />
-                      <span>
-                        {selectedAction.variant.cost === 0 
-                          ? 'Free' 
-                          : `${formatCurrency(selectedAction.variant.cost)} per user`
-                        }
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    💡 Double-click to analyze targeted users
                   </div>
                 </div>
               </div>
@@ -305,6 +335,19 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
               { risk: 'High', count: selectedActionForAnalysis.action.category === 'Discounts' ? 50 : 10 }
             ]
           }}
+        />
+      )}
+
+      {/* Template Preview Modal */}
+      {showTemplateModal && selectedActionForTemplate && (
+        <TemplatePreviewModal
+          isOpen={showTemplateModal}
+          onClose={() => {
+            setShowTemplateModal(false);
+            setSelectedActionForTemplate(null);
+          }}
+          action={selectedActionForTemplate.action}
+          variant={selectedActionForTemplate.variant}
         />
       )}
     </div>
