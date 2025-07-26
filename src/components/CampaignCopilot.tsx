@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { TrendingUp, TrendingDown, Brain, User, CheckCircle, AlertTriangle, Save, History, RotateCcw, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Brain, User, CheckCircle, AlertTriangle, Save, History } from 'lucide-react';
 import { mockData, hypothesesData, proposalOptions } from '@/data/mockData';
 import finnyLogo from '@/assets/finny-logo.png';
 import { useToast } from '@/hooks/use-toast';
@@ -141,32 +141,6 @@ const CampaignCopilot: React.FC = () => {
     });
   };
 
-  const startOver = () => {
-    setState({
-      stage: 'dashboard',
-      selectedOption: null,
-      chatMessages: [],
-      approvals: {
-        brief: false,
-        experiment: false,
-        design: false
-      },
-      savedProposals: state.savedProposals // Keep saved proposals
-    });
-    
-    toast({
-      title: "Starting Over",
-      description: "Workflow has been reset to the beginning."
-    });
-  };
-
-  const goToNextStage = () => {
-    const stages: WorkflowStage[] = ['dashboard', 'chat_diag', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'];
-    const currentIndex = stages.indexOf(state.stage);
-    if (currentIndex < stages.length - 1) {
-      updateStage(stages[currentIndex + 1]);
-    }
-  };
 
   const renderCurrentStage = () => {
     switch (state.stage) {
@@ -331,19 +305,6 @@ const CampaignCopilot: React.FC = () => {
                 </Dialog>
               )}
 
-              {/* Start Over Button */}
-              <Button variant="ghost" size="sm" onClick={startOver}>
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Start Over
-              </Button>
-
-              {/* Next Step Button */}
-              {state.stage !== 'final_send' && (
-                <Button size="sm" onClick={goToNextStage}>
-                  Next Step
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              )}
             </div>
             
             {/* Stage Progress */}
