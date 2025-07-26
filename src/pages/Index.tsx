@@ -1,7 +1,7 @@
-import CampaignCopilot from '@/components/CampaignCopilot';
+import { N1CampaignCopilot } from '@/components/N1CampaignCopilot';
 
 const Index = () => {
-  return <CampaignCopilot />;
+  return <N1CampaignCopilot />;
 };
 
 export default Index;
