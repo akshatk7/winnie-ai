@@ -156,7 +156,7 @@ const CampaignCopilot: React.FC = () => {
         );
       case 'proposal_choice':
         return (
-          <UniversalCampaignBuilder 
+          <UniversalCampaignBuilder
             selectedOption={state.selectedOption}
             onSelectOption={updateSelectedOption}
             onNext={() => updateStage('brief_review')}
