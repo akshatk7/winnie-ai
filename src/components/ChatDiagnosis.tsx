@@ -14,14 +14,15 @@ interface ChatMessage {
 
 interface ChatDiagnosisProps {
   messages: ChatMessage[];
+  hasAnalyzed: boolean;
   onAddMessage: (role: 'user' | 'assistant', content: string) => void;
+  onAnalysisComplete: () => void;
   onNext: (budget: number) => void;
 }
 
-const ChatDiagnosis: React.FC<ChatDiagnosisProps> = ({ messages, onAddMessage, onNext }) => {
+const ChatDiagnosis: React.FC<ChatDiagnosisProps> = ({ messages, hasAnalyzed, onAddMessage, onAnalysisComplete, onNext }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [budget, setBudget] = useState<number>(50000);
 
   useEffect(() => {
@@ -49,7 +50,7 @@ Let me break down the likely causes with data-driven hypotheses...`;
         
         onAddMessage('assistant', analysisResponse);
         setIsLoading(false);
-        setHasAnalyzed(true);
+        onAnalysisComplete();
       }, 2000);
     }
   }, [messages, hasAnalyzed, onAddMessage]);

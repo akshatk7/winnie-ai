@@ -43,6 +43,7 @@ interface CopilotState {
   selectedOption: number | null;
   budget: number | null;
   recommendedCampaign: any | null;
+  hasAnalyzed: boolean;
   chatMessages: Array<{
     role: 'user' | 'assistant';
     content: string;
@@ -62,6 +63,7 @@ const CampaignCopilot: React.FC = () => {
     selectedOption: null,
     budget: null,
     recommendedCampaign: null,
+    hasAnalyzed: false,
     chatMessages: [],
     approvals: {
       brief: false,
@@ -112,6 +114,10 @@ const CampaignCopilot: React.FC = () => {
       ...prev,
       approvals: { ...prev.approvals, [type]: value }
     }));
+  };
+
+  const updateAnalysisStatus = (hasAnalyzed: boolean) => {
+    setState(prev => ({ ...prev, hasAnalyzed }));
   };
 
   const saveProposal = (name: string) => {
@@ -165,7 +171,9 @@ const CampaignCopilot: React.FC = () => {
         return (
           <ChatDiagnosis 
             messages={state.chatMessages}
+            hasAnalyzed={state.hasAnalyzed}
             onAddMessage={addChatMessage}
+            onAnalysisComplete={() => updateAnalysisStatus(true)}
             onNext={(budget: number) => {
               updateBudget(budget);
               const campaign = generateRecommendedCampaign(budget);
