@@ -39,21 +39,22 @@ const ProposalChoice: React.FC<ProposalChoiceProps> = ({
   onSelectOption, 
   onNext 
 }) => {
-  const [budgetInput, setBudgetInput] = useState<number>(25000);
+  const [budgetInput, setBudgetInput] = useState<number>(0);
   const [roiTarget, setRoiTarget] = useState<number>(26);
+  const [budgetSet, setBudgetSet] = useState<boolean>(false);
   const [showUserModal, setShowUserModal] = useState<boolean>(false);
   const [modalSegment, setModalSegment] = useState<string>('');
 
+  const MINIMUM_PROMO_BUDGET = 5000;
+
   // Generate dynamic campaigns based on budget
   const generatePersonalizedCampaigns = (budget: number): CampaignOption[] => {
-    const baseCost = budget * 0.1; // 10% of budget for messaging-only
-    const promoCost = budget * 0.9; // 90% for promotional
+    const campaigns: CampaignOption[] = [];
     
-    // Calculate personalized promo values based on budget
-    const discountPercent = Math.min(30, Math.floor(budget / 1000)); // Higher budget = higher discount
-    const freeMonths = Math.min(3, Math.floor(budget / 10000)); // Higher budget = more free months
+    // Always include messaging-only option
+    const baseCost = budget > 0 ? budget * 0.1 : 2500; // Fixed cost for messaging-only when no budget
     
-    return [
+    campaigns.push(
       {
         title: "Messaging-Only Winback",
         totalCost: baseCost,
@@ -77,45 +78,59 @@ const ProposalChoice: React.FC<ProposalChoiceProps> = ({
             }
           }
         ]
-      },
-      {
-        title: "Promotional Winback",
-        totalCost: promoCost,
-        totalReach: 18234,
-        totalReactivations: Math.floor(18234 * 0.16),
-        blocks: [
-          {
-            type: 'promo',
-            title: `${discountPercent}% Off + ${freeMonths} Months Free`,
-            description: `Personalized ${discountPercent}% discount with ${freeMonths} free months`,
-            cost: promoCost * 0.75,
-            reach: 18234,
-            reactivations: Math.floor(18234 * 0.12),
-            details: {
-              discountPercent,
-              freeMonths,
-              eligibilityCriteria: 'Users with LTV > $400 and tenure > 12 months',
-              duration: `${freeMonths * 4} weeks`
-            }
-          },
-          {
-            type: 'messaging',
-            title: 'Promotional Support Messaging',
-            description: 'Educational content to support the promotional offer',
-            cost: promoCost * 0.25,
-            reach: 18234,
-            reactivations: Math.floor(18234 * 0.04),
-            details: {
-              subComponents: [
-                { channel: 'email', reach: 18234, templates: ['Offer Announcement', 'Value Explanation', 'Last Chance'] },
-                { channel: 'sms', reach: 12000, templates: ['Offer Reminder', 'Deadline Alert'] },
-                { channel: 'push', reach: 15000, templates: ['Offer Available', 'Limited Time'] }
-              ]
-            }
-          }
-        ]
       }
-    ];
+    );
+
+    // Only include promotional option if budget meets minimum threshold
+    if (budget >= MINIMUM_PROMO_BUDGET) {
+      const promoCost = budget * 0.9; // 90% for promotional
+      
+      // Calculate personalized promo values based on budget
+      const discountPercent = Math.min(30, Math.floor(budget / 1000)); // Higher budget = higher discount
+      const freeMonths = Math.min(3, Math.floor(budget / 10000)); // Higher budget = more free months
+      
+      campaigns.push(
+        {
+          title: "Promotional Winback",
+          totalCost: promoCost,
+          totalReach: 18234,
+          totalReactivations: Math.floor(18234 * 0.16),
+          blocks: [
+            {
+              type: 'promo',
+              title: `${discountPercent}% Off + ${freeMonths} Months Free`,
+              description: `Personalized ${discountPercent}% discount with ${freeMonths} free months`,
+              cost: promoCost * 0.75,
+              reach: 18234,
+              reactivations: Math.floor(18234 * 0.12),
+              details: {
+                discountPercent,
+                freeMonths,
+                eligibilityCriteria: 'Users with LTV > $400 and tenure > 12 months',
+                duration: `${freeMonths * 4} weeks`
+              }
+            },
+            {
+              type: 'messaging',
+              title: 'Promotional Support Messaging',
+              description: 'Educational content to support the promotional offer',
+              cost: promoCost * 0.25,
+              reach: 18234,
+              reactivations: Math.floor(18234 * 0.04),
+              details: {
+                subComponents: [
+                  { channel: 'email', reach: 18234, templates: ['Offer Announcement', 'Value Explanation', 'Last Chance'] },
+                  { channel: 'sms', reach: 12000, templates: ['Offer Reminder', 'Deadline Alert'] },
+                  { channel: 'push', reach: 15000, templates: ['Offer Available', 'Limited Time'] }
+                ]
+              }
+            }
+          ]
+        }
+      );
+    }
+
+    return campaigns;
   };
 
   const campaigns = generatePersonalizedCampaigns(budgetInput);
@@ -142,44 +157,112 @@ const ProposalChoice: React.FC<ProposalChoiceProps> = ({
     ]
   };
 
+  // Budget Decision Stage
+  if (!budgetSet) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Campaign Budget Configuration</CardTitle>
+            <p className="text-muted-foreground">
+              Set your campaign budget to unlock personalized winback strategies. 
+              Different budget levels determine available campaign types.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="budget">Campaign Budget ($)</Label>
+                <Input
+                  id="budget"
+                  type="number"
+                  value={budgetInput}
+                  onChange={(e) => setBudgetInput(Number(e.target.value))}
+                  className="text-lg font-medium"
+                  placeholder="Enter your budget (or 0 for messaging-only)"
+                />
+              </div>
+              
+              <div className="p-4 bg-muted rounded-lg space-y-3">
+                <h4 className="font-medium">Budget Guidelines:</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="secondary">$0</Badge>
+                    <span>Messaging-Only campaigns (no promotional costs)</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="default">$5,000+</Badge>
+                    <span>Promotional campaigns with discounts and incentives</span>
+                  </div>
+                </div>
+              </div>
+
+              {budgetInput > 0 && budgetInput < MINIMUM_PROMO_BUDGET && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Note:</strong> Budget below $5,000 will only unlock messaging-only campaigns. 
+                    Increase budget to $5,000+ for promotional options.
+                  </p>
+                </div>
+              )}
+
+              {budgetInput >= MINIMUM_PROMO_BUDGET && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800">
+                    <strong>Great!</strong> Your budget unlocks both messaging and promotional campaign options.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-center">
+              <Button 
+                onClick={() => setBudgetSet(true)}
+                size="lg"
+                className="px-8"
+              >
+                Continue to Campaign Options
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Recommended Winback Strategies</CardTitle>
-          <p className="text-muted-foreground">
-            Configure your budget and ROI targets to generate personalized campaign building blocks. 
-            Each strategy is dynamically optimized based on your inputs.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Recommended Winback Strategies</CardTitle>
+              <p className="text-muted-foreground">
+                Budget: ${budgetInput.toLocaleString()} • {budgetInput >= MINIMUM_PROMO_BUDGET ? 'Promotional campaigns available' : 'Messaging-only campaigns'}
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => setBudgetSet(false)}
+              size="sm"
+            >
+              Change Budget
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="budget">Total Budget ($)</Label>
-              <Input
-                id="budget"
-                type="number"
-                value={budgetInput}
-                onChange={(e) => setBudgetInput(Number(e.target.value))}
-                className="text-lg font-medium"
-              />
-              <p className="text-xs text-muted-foreground">
-                Higher budgets unlock better promotional offers
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="roi">Target ROI (%)</Label>
-              <Input
-                id="roi"
-                type="number"
-                value={roiTarget}
-                onChange={(e) => setRoiTarget(Number(e.target.value))}
-                className="text-lg font-medium"
-              />
-              <p className="text-xs text-muted-foreground">
-                Current projected ROI based on $485 avg LTV
-              </p>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="roi">Target ROI (%)</Label>
+            <Input
+              id="roi"
+              type="number"
+              value={roiTarget}
+              onChange={(e) => setRoiTarget(Number(e.target.value))}
+              className="text-lg font-medium max-w-xs"
+            />
+            <p className="text-xs text-muted-foreground">
+              Current projected ROI based on $485 avg LTV
+            </p>
           </div>
         </CardContent>
       </Card>
