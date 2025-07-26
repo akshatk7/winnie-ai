@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { TrendingUp, Users, DollarSign, Target, Bot } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Target, Bot, MousePointer2 } from 'lucide-react';
 import { CampaignAction, ActionVariant, messagingActions, promotionalActions } from '@/data/actionLibrary';
+import UserProfileModal from './UserProfileModal';
 
 interface CampaignMetrics {
   totalReach: number;
@@ -35,10 +36,78 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
   onCustomize,
   onOpenCopilot
 }) => {
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [selectedActionForAnalysis, setSelectedActionForAnalysis] = useState<SelectedAction | null>(null);
+  
   const formatCurrency = (amount: number) => 
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
   const formatPercentage = (value: number) => `${(value * 100).toFixed(1)}%`;
+
+  // Generate mock user profiles for a specific action
+  const generateUsersForAction = (action: SelectedAction) => {
+    const baseCount = Math.min(action.variant.reach, 50); // Show up to 50 users
+    const users = [];
+    const names = ['Alex Johnson', 'Sarah Wilson', 'Mike Chen', 'Emma Davis', 'James Brown', 'Lisa Garcia', 'David Kim', 'Anna Martinez'];
+    const locations = ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ', 'Philadelphia, PA'];
+    const segments = ['Premium', 'Standard', 'Basic', 'Enterprise'];
+    
+    for (let i = 0; i < baseCount; i++) {
+      const riskScore = action.action.category === 'Discounts' ? 
+        (action.variant.name.includes('50%') ? 0.8 : 
+         action.variant.name.includes('30%') ? 0.6 : 0.3) : 0.2;
+      
+      const isEmailAction = action.action.name.toLowerCase().includes('email');
+      const isSMSAction = action.action.name.toLowerCase().includes('sms');
+      const isPushAction = action.action.name.toLowerCase().includes('push');
+      
+      users.push({
+        user_id: `user_${action.action.id}_${i + 1000}`,
+        name: names[i % names.length],
+        email: `${names[i % names.length].toLowerCase().replace(' ', '.')}@example.com`,
+        LTV: Math.floor(Math.random() * 15000) + 2000,
+        last_active_days: Math.floor(Math.random() * 30) + 1,
+        tenure_months: Math.floor(Math.random() * 24) + 6,
+        prefers_sms: isSMSAction || Math.random() > 0.6,
+        prefers_push: isPushAction || Math.random() > 0.5,
+        prefers_email: isEmailAction || Math.random() > 0.3,
+        channel_stats: {
+          email_open: Math.random() * 0.8 + 0.1,
+          sms_click: Math.random() * 0.6 + 0.2,
+          push_tap: Math.random() * 0.4 + 0.1
+        },
+        demographics: {
+          age: Math.floor(Math.random() * 40) + 25,
+          location: locations[i % locations.length],
+          segment: segments[i % segments.length]
+        },
+        behavior: {
+          avg_session_duration: Math.floor(Math.random() * 45) + 5,
+          monthly_transactions: Math.floor(Math.random() * 20) + 1,
+          last_transaction_days: Math.floor(Math.random() * 15) + 1
+        },
+        risk_score: riskScore,
+        engagement_trend: Array.from({ length: 6 }, (_, j) => ({
+          month: new Date(Date.now() - j * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en', { month: 'short' }),
+          score: Math.random() * 0.8 + 0.2
+        })),
+        recent_interactions: [
+          {
+            date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+            channel: isEmailAction ? 'Email' : isSMSAction ? 'SMS' : isPushAction ? 'Push' : 'Email',
+            type: action.action.type,
+            response: Math.random() > 0.5 ? 'Opened' : 'Delivered'
+          }
+        ]
+      });
+    }
+    return users;
+  };
+
+  const handleActionDoubleClick = (selectedAction: SelectedAction) => {
+    setSelectedActionForAnalysis(selectedAction);
+    setShowUserModal(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -123,12 +192,19 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
           {selectedActions.map((selectedAction, index) => (
             <div key={`${selectedAction.action.id}-${selectedAction.variant.id}`}>
               {index > 0 && <Separator className="my-4" />}
-              <div className="flex items-start justify-between">
+              <div 
+                className="flex items-start justify-between p-3 rounded-lg border border-transparent hover:border-border hover:bg-accent/50 cursor-pointer transition-all duration-200 group"
+                onDoubleClick={() => handleActionDoubleClick(selectedAction)}
+                title="Double-click to see targeted users analysis"
+              >
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="text-2xl">{selectedAction.action.icon}</div>
                     <div>
-                      <h4 className="font-semibold">{selectedAction.action.name}</h4>
+                      <h4 className="font-semibold flex items-center gap-2">
+                        {selectedAction.action.name}
+                        <MousePointer2 className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </h4>
                       <p className="text-sm text-muted-foreground">
                         {selectedAction.variant.name}
                       </p>
@@ -138,7 +214,7 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
-                    {selectedAction.action.description}
+                    {selectedAction.variant.description}
                   </p>
                   
                   <div className="flex gap-4 text-sm">
@@ -159,6 +235,10 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
                         }
                       </span>
                     </div>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    💡 Double-click to analyze targeted users
                   </div>
                 </div>
               </div>
@@ -199,6 +279,34 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
           Customize Campaign
         </Button>
       </div>
+
+      {/* User Profile Modal */}
+      {showUserModal && selectedActionForAnalysis && (
+        <UserProfileModal
+          isOpen={showUserModal}
+          onClose={() => {
+            setShowUserModal(false);
+            setSelectedActionForAnalysis(null);
+          }}
+          userProfiles={generateUsersForAction(selectedActionForAnalysis)}
+          segmentSummary={{
+            totalUsers: selectedActionForAnalysis.variant.reach,
+            avgTenure: 14.5,
+            avgLTV: 8750,
+            topChannels: [
+              { channel: 'Email', preference: selectedActionForAnalysis.action.name.toLowerCase().includes('email') ? 85 : 45 },
+              { channel: 'SMS', preference: selectedActionForAnalysis.action.name.toLowerCase().includes('sms') ? 90 : 35 },
+              { channel: 'Push', preference: selectedActionForAnalysis.action.name.toLowerCase().includes('push') ? 75 : 25 },
+              { channel: 'In-App', preference: 60 }
+            ],
+            riskDistribution: [
+              { risk: 'Low', count: selectedActionForAnalysis.action.category === 'Discounts' ? 20 : 60 },
+              { risk: 'Medium', count: selectedActionForAnalysis.action.category === 'Discounts' ? 30 : 30 },
+              { risk: 'High', count: selectedActionForAnalysis.action.category === 'Discounts' ? 50 : 10 }
+            ]
+          }}
+        />
+      )}
     </div>
   );
 };

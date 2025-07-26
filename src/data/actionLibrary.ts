@@ -190,38 +190,83 @@ export const promotionalActions: CampaignAction[] = [
     variants: [
       {
         id: 'discount_10',
-        name: '10% Off',
-        description: '10% discount on fees for 3 months',
+        name: '10% Off (High Engagement)',
+        description: '10% discount on fees for 3 months - for highly engaged users',
         cost: 2.50,
-        reach: 18234,
+        reach: 3200,
         expectedImpact: 12,
         personalizedValue: '10%'
       },
       {
+        id: 'discount_15',
+        name: '15% Off (Regular Users)',
+        description: '15% discount on fees for 3 months - for regular users',
+        cost: 3.75,
+        reach: 4800,
+        expectedImpact: 15,
+        personalizedValue: '15%'
+      },
+      {
         id: 'discount_20',
-        name: '20% Off',
-        description: '20% discount on fees for 3 months',
+        name: '20% Off (At-Risk Users)',
+        description: '20% discount on fees for 3 months - for at-risk users',
         cost: 5.00,
-        reach: 18234,
+        reach: 5600,
         expectedImpact: 18,
         personalizedValue: '20%'
       },
       {
+        id: 'discount_25',
+        name: '25% Off (Moderate Risk)',
+        description: '25% discount on fees for 2 months - for moderate churn risk',
+        cost: 6.25,
+        reach: 2900,
+        expectedImpact: 22,
+        personalizedValue: '25%'
+      },
+      {
         id: 'discount_30',
-        name: '30% Off',
-        description: '30% discount on fees for 2 months',
+        name: '30% Off (High Risk)',
+        description: '30% discount on fees for 2 months - for high churn risk',
         cost: 7.50,
-        reach: 18234,
+        reach: 2100,
         expectedImpact: 25,
         personalizedValue: '30%'
       },
       {
+        id: 'discount_35',
+        name: '35% Off (Premium Recovery)',
+        description: '35% discount on fees for 2 months - for premium users at risk',
+        cost: 8.75,
+        reach: 1500,
+        expectedImpact: 28,
+        personalizedValue: '35%'
+      },
+      {
+        id: 'discount_40',
+        name: '40% Off (Critical Retention)',
+        description: '40% discount on fees for 1 month - for critical retention cases',
+        cost: 10.00,
+        reach: 1200,
+        expectedImpact: 32,
+        personalizedValue: '40%'
+      },
+      {
+        id: 'discount_45',
+        name: '45% Off (Last Chance)',
+        description: '45% discount on fees for 1 month - last chance offer',
+        cost: 11.25,
+        reach: 800,
+        expectedImpact: 36,
+        personalizedValue: '45%'
+      },
+      {
         id: 'discount_50',
-        name: '50% Off',
-        description: '50% discount on fees for 1 month',
+        name: '50% Off (Win-Back)',
+        description: '50% discount on fees for 1 month - aggressive win-back',
         cost: 12.50,
-        reach: 18234,
-        expectedImpact: 35,
+        reach: 600,
+        expectedImpact: 40,
         personalizedValue: '50%'
       }
     ],
