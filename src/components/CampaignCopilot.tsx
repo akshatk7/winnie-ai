@@ -55,6 +55,14 @@ const CampaignCopilot: React.FC = () => {
     setState(prev => ({ ...prev, stage: newStage }));
   };
 
+  const goBack = () => {
+    const stages: WorkflowStage[] = ['dashboard', 'chat_diag', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'];
+    const currentIndex = stages.indexOf(state.stage);
+    if (currentIndex > 0) {
+      updateStage(stages[currentIndex - 1]);
+    }
+  };
+
   const updateSelectedOption = (option: number) => {
     setState(prev => ({ ...prev, selectedOption: option }));
   };
@@ -145,6 +153,11 @@ const CampaignCopilot: React.FC = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
+              {state.stage !== 'dashboard' && (
+                <Button variant="ghost" onClick={goBack} className="mr-2">
+                  ← Back
+                </Button>
+              )}
               <img src={finnyLogo} alt="Finny" className="h-8 w-auto" />
               <div className="h-6 w-px bg-border" />
               <h1 className="text-xl font-semibold text-foreground">AI Campaign Copilot</h1>
