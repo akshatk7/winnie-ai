@@ -220,8 +220,8 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
         </div>
 
         {/* Campaign Actions */}
-        <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
-          <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b">
+        <Card className="overflow-hidden border-0 shadow-lg bg-white">
+          <CardHeader className="bg-white border-b">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Target className="h-5 w-5 text-primary" />
@@ -234,7 +234,7 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-6 bg-white">
             <div className="space-y-6">
               {selectedActions.map((selectedAction, index) => (
                 <div key={`${selectedAction.action.id}-${selectedAction.variant.id}`}>
@@ -321,8 +321,8 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
         </Card>
 
         {/* Campaign Reasoning */}
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-muted/20">
-          <CardHeader className="bg-gradient-to-r from-success/5 to-primary/5 border-b">
+        <Card className="border-0 shadow-lg bg-white">
+          <CardHeader className="bg-white border-b">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-success/10 rounded-lg">
                 <Brain className="h-5 w-5 text-success" />
@@ -330,7 +330,7 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
               <CardTitle className="text-xl">Why This Campaign?</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-6 bg-white">
             <div className="space-y-4">
               <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-lg border border-primary/10">
                 <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
