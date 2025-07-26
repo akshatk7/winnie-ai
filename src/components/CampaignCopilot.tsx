@@ -9,7 +9,7 @@ import finnyLogo from '@/assets/finny-logo.png';
 import { useToast } from '@/hooks/use-toast';
 import Dashboard from './Dashboard';
 import ChatDiagnosis from './ChatDiagnosis';
-import ProposalChoice from './ProposalChoice';
+import UniversalCampaignBuilder from './UniversalCampaignBuilder';
 import BriefReview from './BriefReview';
 import ExperimentPlan from './ExperimentPlan';
 import Collateral from './Collateral';
@@ -156,7 +156,7 @@ const CampaignCopilot: React.FC = () => {
         );
       case 'proposal_choice':
         return (
-          <ProposalChoice 
+          <UniversalCampaignBuilder 
             selectedOption={state.selectedOption}
             onSelectOption={updateSelectedOption}
             onNext={() => updateStage('brief_review')}
