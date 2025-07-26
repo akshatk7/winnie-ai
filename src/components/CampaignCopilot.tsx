@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import Dashboard from './Dashboard';
 import ChatDiagnosis from './ChatDiagnosis';
 import UniversalCampaignBuilder from './UniversalCampaignBuilder';
+import CampaignSummary from './CampaignSummary';
+import { generateRecommendedCampaign } from '@/utils/campaignRecommendation';
 import BriefReview from './BriefReview';
 import ExperimentPlan from './ExperimentPlan';
 import Collateral from './Collateral';
@@ -19,6 +21,7 @@ import FinalSend from './FinalSend';
 export type WorkflowStage = 
   | 'dashboard' 
   | 'chat_diag' 
+  | 'campaign_summary'
   | 'proposal_choice' 
   | 'brief_review' 
   | 'experiment_plan' 
@@ -38,6 +41,8 @@ interface SavedProposal {
 interface CopilotState {
   stage: WorkflowStage;
   selectedOption: number | null;
+  budget: number | null;
+  recommendedCampaign: any | null;
   chatMessages: Array<{
     role: 'user' | 'assistant';
     content: string;
@@ -55,6 +60,8 @@ const CampaignCopilot: React.FC = () => {
   const [state, setState] = useState<CopilotState>({
     stage: 'dashboard',
     selectedOption: null,
+    budget: null,
+    recommendedCampaign: null,
     chatMessages: [],
     approvals: {
       brief: false,
@@ -71,7 +78,7 @@ const CampaignCopilot: React.FC = () => {
   };
 
   const goBack = () => {
-    const stages: WorkflowStage[] = ['dashboard', 'chat_diag', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'];
+    const stages: WorkflowStage[] = ['dashboard', 'chat_diag', 'campaign_summary', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'];
     const currentIndex = stages.indexOf(state.stage);
     if (currentIndex > 0) {
       updateStage(stages[currentIndex - 1]);
@@ -80,6 +87,14 @@ const CampaignCopilot: React.FC = () => {
 
   const updateSelectedOption = (option: number) => {
     setState(prev => ({ ...prev, selectedOption: option }));
+  };
+
+  const updateBudget = (budget: number) => {
+    setState(prev => ({ ...prev, budget }));
+  };
+
+  const updateRecommendedCampaign = (campaign: any) => {
+    setState(prev => ({ ...prev, recommendedCampaign: campaign }));
   };
 
   const addChatMessage = (role: 'user' | 'assistant', content: string) => {
@@ -151,7 +166,23 @@ const CampaignCopilot: React.FC = () => {
           <ChatDiagnosis 
             messages={state.chatMessages}
             onAddMessage={addChatMessage}
-            onNext={() => updateStage('proposal_choice')}
+            onNext={(budget: number) => {
+              updateBudget(budget);
+              const campaign = generateRecommendedCampaign(budget);
+              updateRecommendedCampaign(campaign);
+              updateStage('campaign_summary');
+            }}
+          />
+        );
+      case 'campaign_summary':
+        return (
+          <CampaignSummary 
+            budget={state.budget || 0}
+            campaignMetrics={state.recommendedCampaign?.metrics || { totalReach: 0, expectedReactivations: 0, totalCost: 0, projectedROI: 0 }}
+            selectedActions={state.recommendedCampaign?.selectedActions || []}
+            onAccept={() => updateStage('brief_review')}
+            onCustomize={() => updateStage('proposal_choice')}
+            onOpenCopilot={() => {}}
           />
         );
       case 'proposal_choice':
@@ -309,11 +340,11 @@ const CampaignCopilot: React.FC = () => {
             
             {/* Stage Progress */}
             <div className="flex items-center space-x-2">
-              {['dashboard', 'chat_diag', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'].map((stage, index) => (
+              {['dashboard', 'chat_diag', 'campaign_summary', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'].map((stage, index) => (
                 <div 
                   key={stage}
                   className={`h-2 w-8 rounded-full transition-colors ${
-                    ['dashboard', 'chat_diag', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'].indexOf(state.stage) >= index
+                    ['dashboard', 'chat_diag', 'campaign_summary', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'].indexOf(state.stage) >= index
                       ? 'bg-primary' 
                       : 'bg-muted'
                   }`}
