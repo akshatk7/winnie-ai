@@ -188,7 +188,11 @@ const CampaignCopilot: React.FC = () => {
             budget={state.budget || 0}
             campaignMetrics={state.recommendedCampaign?.metrics || { totalReach: 0, expectedReactivations: 0, totalCost: 0, projectedROI: 0 }}
             selectedActions={state.recommendedCampaign?.selectedActions || []}
-            onAccept={() => updateStage('brief_review')}
+            onAccept={() => {
+              // Set selectedOption to 0 (AI-Generated Multi-Channel Messaging) for campaign summary flow
+              updateSelectedOption(0);
+              updateStage('brief_review');
+            }}
             onCustomize={() => updateStage('proposal_choice')}
             onOpenCopilot={() => {}}
           />
