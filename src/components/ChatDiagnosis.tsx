@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Brain, User, Send, BarChart3 } from 'lucide-react';
+import { Brain, User, Send, BarChart3, Loader2 } from 'lucide-react';
 import { hypothesesData } from '@/data/mockData';
 
 interface ChatMessage {
@@ -24,9 +24,12 @@ const ChatDiagnosis: React.FC<ChatDiagnosisProps> = ({ messages, hasAnalyzed, on
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [budget, setBudget] = useState<number>(50000);
+  const [isThinking, setIsThinking] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [analysisReady, setAnalysisReady] = useState(false);
 
   useEffect(() => {
-    // Auto-start the conversation
+    // Auto-start the conversation with pre-seeded question
     if (messages.length === 0) {
       setTimeout(() => {
         onAddMessage('user', 'Why is our churn rate spiking? Can you analyze the data and provide insights?');
@@ -35,36 +38,56 @@ const ChatDiagnosis: React.FC<ChatDiagnosisProps> = ({ messages, hasAnalyzed, on
   }, []);
 
   useEffect(() => {
-    // Simulate AI response
-    if (messages.length === 1 && messages[0].role === 'user' && !hasAnalyzed) {
+    // Initial AI response asking for permission to dive deeper
+    if (messages.length === 1 && messages[0].role === 'user' && !isThinking && !analysisReady) {
       setIsLoading(true);
       setTimeout(() => {
-        const analysisResponse = `I've analyzed your churn data, recent campaigns, market intelligence, and system incidents. Here are my findings:
+        const initialResponse = `I've analyzed your churn data, recent campaigns, market intelligence, and system incidents. Here are my findings:
 
 **Key Insights:**
 • Churn spiked from 4% to 6% starting 3 days ago
 • This coincides with the end of your "Spring Saver Offer" campaign
 • Competitor activity and technical issues are contributing factors
 
-Let me break down the likely causes with data-driven hypotheses...`;
+Do you want me to dive into the data and do a root cause analysis with data driven hypothesis?`;
         
-        onAddMessage('assistant', analysisResponse);
+        onAddMessage('assistant', initialResponse);
         setIsLoading(false);
-        onAnalysisComplete();
       }, 2000);
     }
-  }, [messages, hasAnalyzed, onAddMessage]);
+  }, [messages, isThinking, analysisReady, onAddMessage]);
 
   const handleSend = () => {
     if (!input.trim()) return;
     
+    const userMessage = input.toLowerCase();
     onAddMessage('user', input);
     setInput('');
     
-    // Simulate AI response
-    setTimeout(() => {
-      onAddMessage('assistant', 'Thank you for the additional context. Based on this information, I recommend we proceed with developing targeted retention campaigns. Would you like to see my recommendations?');
-    }, 1000);
+    // Check if user is confirming they want the deep analysis
+    if ((userMessage.includes('yes') || userMessage.includes('do it') || userMessage.includes('proceed')) && !isThinking && !analysisReady) {
+      // Start the thinking process
+      setIsThinking(true);
+      setTimeout(() => {
+        onAddMessage('assistant', 'Starting deep data analysis...');
+        
+        // After 3 seconds of thinking, show analysis ready
+        setTimeout(() => {
+          setIsThinking(false);
+          setAnalysisReady(true);
+        }, 3000);
+      }, 1000);
+    } else if (!analysisReady) {
+      // General response for other messages
+      setTimeout(() => {
+        onAddMessage('assistant', 'I understand. Feel free to ask any other questions about the churn analysis, or let me know when you\'re ready for the detailed root cause analysis.');
+      }, 1000);
+    }
+  };
+
+  const handleShowAnalysis = () => {
+    setShowAnalysis(true);
+    onAnalysisComplete();
   };
 
   return (
@@ -120,6 +143,38 @@ Let me break down the likely causes with data-driven hypotheses...`;
                 </div>
               </div>
             )}
+
+            {isThinking && (
+              <div className="flex space-x-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                  <Brain className="h-4 w-4" />
+                </div>
+                <div className="bg-muted rounded-lg p-4 border-2 border-primary/20">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm font-medium">Thinking...</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Analyzing churn patterns, campaign correlations, market data, and system metrics...
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {analysisReady && !showAnalysis && (
+              <div className="flex space-x-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                  <Brain className="h-4 w-4" />
+                </div>
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="text-sm mb-3">Analysis complete! I've identified the key drivers of your churn spike.</p>
+                  <Button onClick={handleShowAnalysis} className="w-full">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Churn Cause Analysis Ready
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
           
           <div className="flex space-x-2">
@@ -145,7 +200,7 @@ Let me break down the likely causes with data-driven hypotheses...`;
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {hasAnalyzed && hypothesesData.map((hypothesis, index) => (
+          {showAnalysis && hypothesesData.map((hypothesis, index) => (
             <div key={index} className="space-y-3 p-4 border rounded-lg">
               <div className="flex items-start justify-between">
                 <h4 className="font-medium text-sm">{hypothesis.hypothesis}</h4>
@@ -174,7 +229,7 @@ Let me break down the likely causes with data-driven hypotheses...`;
             </div>
           ))}
           
-          {hasAnalyzed && (
+          {showAnalysis && (
             <div className="space-y-4 mt-6">
               <div>
                 <label className="text-sm font-medium mb-2 block">Campaign Budget</label>
