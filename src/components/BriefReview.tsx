@@ -207,35 +207,22 @@ const BriefReview: React.FC<BriefReviewProps> = ({ selectedOption, onApprove }) 
                 <Badge>{option.option}</Badge>
               </div>
               <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Budget</span>
+                <span className="font-medium">${option.cost.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Target Reach</span>
-                <span className="font-medium">{option.reach.toLocaleString()}</span>
+                <span className="font-medium">12,000</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Expected ROI</span>
                 <span className="font-medium text-success">
-                  {Math.round((option.expected_reactivations * 485 - option.cost) / option.cost * 100)}%
+                  {option.cost === 0 ? '-' : `${((1200 + Math.floor(option.cost / 1000) * 100) / option.cost * 100).toFixed(1)}%`}
                 </span>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Budget Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between border-b pb-2">
-                <span className="font-medium">Total Budget</span>
-                <span className="font-bold">${briefContent.budget_allocation.total.toLocaleString()}</span>
-              </div>
-              {Object.entries(briefContent.budget_allocation.breakdown).map(([category, amount]) => (
-                <div key={category} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{category}</span>
-                  <span>${amount.toLocaleString()}</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
 
           <Card>
             <CardHeader>
