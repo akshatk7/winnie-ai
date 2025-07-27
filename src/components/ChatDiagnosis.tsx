@@ -91,7 +91,7 @@ Do you want me to dive into the data and do a root cause analysis with data driv
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className={`${showAnalysis ? 'grid grid-cols-1 lg:grid-cols-2 gap-6' : 'max-w-4xl mx-auto'}`}>
       {/* Chat Interface */}
       <Card className="h-[600px] flex flex-col">
         <CardHeader>
@@ -191,8 +191,9 @@ Do you want me to dive into the data and do a root cause analysis with data driv
         </CardContent>
       </Card>
 
-      {/* Hypotheses Analysis */}
-      <Card>
+      {/* Hypotheses Analysis - Only show when analysis is ready */}
+      {showAnalysis && (
+        <Card className="animate-fade-in">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <BarChart3 className="h-5 w-5 text-primary" />
@@ -247,7 +248,8 @@ Do you want me to dive into the data and do a root cause analysis with data driv
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      )}
     </div>
   );
 };
