@@ -38,7 +38,9 @@ const BriefReview: React.FC<BriefReviewProps> = ({ selectedOption, onApprove }) 
       "15% represents baseline seasonal Q1 churn patterns"
     ],
     
-    solution_overview: option.description,
+    solution_overview: selectedOption === 0 
+      ? "Educational messaging about product value and improved reliability targeting users at risk of churn"
+      : "Strategic promotional campaign combining fee waivers with educational messaging to retain high-value users",
     
     target_audience: "Users with LTV > $300, last active within 45 days, flagged as incremental based on our ML model. Approximately 18,234 users meet these criteria.",
     
@@ -95,7 +97,7 @@ const BriefReview: React.FC<BriefReviewProps> = ({ selectedOption, onApprove }) 
               <div>
                 <CardTitle>Marketing Campaign Brief</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  {option.option} Strategy • Generated {new Date().toLocaleDateString()}
+                  Churn Mitigation Strategy • Generated {new Date().toLocaleDateString()}
                 </p>
               </div>
             </div>

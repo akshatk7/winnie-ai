@@ -420,7 +420,7 @@ const UniversalCampaignBuilder: React.FC<UniversalCampaignBuilderProps> = ({
                 size="sm"
               >
                 <Brain className="h-4 w-4 mr-1" />
-                AI Copilot
+                Winnie
               </Button>
             </div>
           </div>

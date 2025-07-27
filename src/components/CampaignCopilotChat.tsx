@@ -49,7 +49,7 @@ const CampaignCopilotChat: React.FC<CampaignCopilotChatProps> = ({
     // Welcome message
     setMessages([{
       role: 'assistant',
-      content: `Hi! I'm your Campaign AI Copilot. I can help you optimize your campaign configuration through natural language.
+      content: `Hi! I'm Winnie. I can help you optimize your campaign configuration through natural language.
 
 **What I can help with:**
 • Add or remove specific actions: "Add SMS quick tips"
@@ -392,7 +392,7 @@ Would you like me to automatically optimize your action selection?`,
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Brain className="h-5 w-5 text-primary" />
-              <span>Campaign AI Copilot</span>
+              <span>Winnie</span>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />

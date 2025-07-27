@@ -261,7 +261,7 @@ const CampaignCopilot: React.FC = () => {
               )}
               <img src={finnyLogo} alt="Finny" className="h-8 w-auto" />
               <div className="h-6 w-px bg-border" />
-              <h1 className="text-xl font-semibold text-foreground">AI Campaign Copilot</h1>
+              <h1 className="text-xl font-semibold text-foreground">Winnie</h1>
             </div>
             
             {/* Action Buttons */}

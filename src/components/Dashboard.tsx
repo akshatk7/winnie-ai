@@ -93,7 +93,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onAskCopilot }) => {
             </div>
             <Button onClick={onAskCopilot} className="bg-gradient-to-r from-primary to-accent hover:opacity-90">
               <Brain className="h-4 w-4 mr-2" />
-              Ask AI Copilot
+              Ask Winnie
             </Button>
           </div>
         </CardHeader>

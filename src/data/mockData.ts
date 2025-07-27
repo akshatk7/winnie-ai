@@ -1,4 +1,4 @@
-// Mock data for the Finny AI Campaign Copilot
+// Mock data for Finny Winnie
 
 export interface ChurnMetric {
   date: string;

@@ -97,7 +97,7 @@ Do you want me to dive into the data and do a root cause analysis with data driv
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Brain className="h-5 w-5 text-primary" />
-            <span>AI Copilot Analysis</span>
+            <span>Winnie Analysis</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col space-y-4">

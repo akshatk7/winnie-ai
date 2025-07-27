@@ -102,7 +102,7 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
       }
     },
     created_at: new Date().toISOString(),
-    created_by: "ai_copilot_v2.1",
+    created_by: "winnie_v2.1",
     approval_chain: [
       { role: "marketing_lead", approved_at: new Date().toISOString() },
       { role: "data_science", approved_at: new Date().toISOString() },
@@ -304,7 +304,7 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
               <div>
                 <p className="font-medium">Automated Guardrail Monitoring</p>
                 <p className="text-sm text-muted-foreground">
-                  AI Copilot will alert you if fatigue scores or unsubscribe rates exceed thresholds
+                  Winnie will alert you if fatigue scores or unsubscribe rates exceed thresholds
                 </p>
               </div>
             </div>
