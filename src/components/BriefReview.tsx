@@ -2,18 +2,24 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Share, CheckCircle, Target, DollarSign, Users, AlertTriangle } from 'lucide-react';
+import { FileText, Share, CheckCircle, Target, DollarSign, Users, AlertTriangle, Home } from 'lucide-react';
 import { proposalOptions } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
 
 interface BriefReviewProps {
   selectedOption: number | null;
   onApprove: () => void;
+  budget?: number;
+  onStartOver?: () => void;
 }
 
-const BriefReview: React.FC<BriefReviewProps> = ({ selectedOption, onApprove }) => {
+const BriefReview: React.FC<BriefReviewProps> = ({ selectedOption, onApprove, budget = 0, onStartOver }) => {
   const { toast } = useToast();
   const option = selectedOption !== null ? proposalOptions[selectedOption] : null;
+  
+  // Calculate dynamic values based on budget
+  const dynamicReactivations = 1200 + Math.floor(budget / 1000) * 100;
+  const dynamicROI = budget === 0 ? 0 : (dynamicReactivations / budget * 100);
 
   const handleShare = () => {
     toast({
@@ -46,25 +52,25 @@ const BriefReview: React.FC<BriefReviewProps> = ({ selectedOption, onApprove }) 
     
     success_metrics: [
       `Primary: Reduce churn rate from 6% to 4.5% within ${selectedOption === 0 ? '2 weeks' : '8 weeks'}`,
-      `Secondary: Reactivate ${option.expected_reactivations.toLocaleString()} users`,
+      `Secondary: Reactivate ${dynamicReactivations.toLocaleString()} users`,
       "Tertiary: Maintain customer satisfaction score above 8.5",
       "Monitor: Campaign fatigue score (target: <0.3)"
     ],
     
     budget_allocation: {
-      total: option.cost,
+      total: budget,
       breakdown: selectedOption === 0 ? {
-        "Content Creation": 1000,
-        "Email Platform": 500,
-        "SMS Credits": 600,
-        "Push Notification Service": 200,
-        "Analytics & Monitoring": 200
+        "Content Creation": Math.max(1000, Math.floor(budget * 0.4)),
+        "Email Platform": Math.max(500, Math.floor(budget * 0.2)),
+        "SMS Credits": Math.max(600, Math.floor(budget * 0.25)),
+        "Push Notification Service": Math.max(200, Math.floor(budget * 0.08)),
+        "Analytics & Monitoring": Math.max(200, Math.floor(budget * 0.07))
       } : {
-        "Fee Waivers": 20000,
-        "Content Creation": 2000,
-        "Platform Costs": 1500,
-        "Premium Support": 1000,
-        "Analytics & Monitoring": 500
+        "Fee Waivers": Math.max(20000, Math.floor(budget * 0.8)),
+        "Content Creation": Math.max(2000, Math.floor(budget * 0.08)),
+        "Platform Costs": Math.max(1500, Math.floor(budget * 0.06)),
+        "Premium Support": Math.max(1000, Math.floor(budget * 0.04)),
+        "Analytics & Monitoring": Math.max(500, Math.floor(budget * 0.02))
       }
     },
     
@@ -102,6 +108,12 @@ const BriefReview: React.FC<BriefReviewProps> = ({ selectedOption, onApprove }) 
               </div>
             </div>
             <div className="flex space-x-2">
+              {onStartOver && (
+                <Button variant="ghost" onClick={onStartOver}>
+                  <Home className="h-4 w-4 mr-2" />
+                  Start Over
+                </Button>
+              )}
               <Button variant="outline" onClick={handleShare}>
                 <Share className="h-4 w-4 mr-2" />
                 Share with XFN
@@ -206,20 +218,20 @@ const BriefReview: React.FC<BriefReviewProps> = ({ selectedOption, onApprove }) 
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Strategy</span>
-                <Badge>{option.option}</Badge>
+                <Badge>Churn Mitigation Strategy</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Budget</span>
-                <span className="font-medium">${option.cost.toLocaleString()}</span>
+                <span className="font-medium">${budget.toLocaleString()}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Target Reach</span>
-                <span className="font-medium">12,000</span>
+                <span className="font-medium">18,234</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Expected ROI</span>
                 <span className="font-medium text-success">
-                  {option.cost === 0 ? '-' : `${((1200 + Math.floor(option.cost / 1000) * 100) / option.cost * 100).toFixed(1)}%`}
+                  {budget === 0 ? '-' : `${dynamicROI.toFixed(1)}%`}
                 </span>
               </div>
             </CardContent>

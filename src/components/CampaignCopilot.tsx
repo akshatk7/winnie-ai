@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { TrendingUp, TrendingDown, Brain, User, CheckCircle, AlertTriangle, Save, History } from 'lucide-react';
+import ProgressBar from '@/components/ui/progress-bar';
 import { mockData, hypothesesData, proposalOptions } from '@/data/mockData';
 import finnyLogo from '@/assets/finny-logo.png';
 import { useToast } from '@/hooks/use-toast';
@@ -209,10 +210,12 @@ const CampaignCopilot: React.FC = () => {
         return (
           <BriefReview 
             selectedOption={state.selectedOption}
+            budget={state.budget || 0}
             onApprove={() => {
               updateApproval('brief', true);
               updateStage('experiment_plan');
             }}
+            onStartOver={() => updateStage('dashboard')}
           />
         );
       case 'experiment_plan':
@@ -351,18 +354,9 @@ const CampaignCopilot: React.FC = () => {
             </div>
             
             {/* Stage Progress */}
-            <div className="flex items-center space-x-2">
-              {['dashboard', 'chat_diag', 'campaign_summary', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'].map((stage, index) => (
-                <div 
-                  key={stage}
-                  className={`h-2 w-8 rounded-full transition-colors ${
-                    ['dashboard', 'chat_diag', 'campaign_summary', 'proposal_choice', 'brief_review', 'experiment_plan', 'collateral', 'approvals', 'final_send'].indexOf(state.stage) >= index
-                      ? 'bg-primary' 
-                      : 'bg-muted'
-                  }`}
-                />
-              ))}
-            </div>
+            {state.stage !== 'dashboard' && (
+              <ProgressBar currentStage={state.stage} />
+            )}
           </div>
         </div>
       </header>
