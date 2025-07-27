@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { TrendingUp, TrendingDown, Brain, User, CheckCircle, AlertTriangle, Save, History } from 'lucide-react';
 import ProgressBar from '@/components/ui/progress-bar';
 import { mockData, hypothesesData, proposalOptions } from '@/data/mockData';
-import finnyLogo from '@/assets/finny-logo.png';
+
 import { useToast } from '@/hooks/use-toast';
 import Dashboard from './Dashboard';
 import ChatDiagnosis from './ChatDiagnosis';
@@ -262,8 +262,6 @@ const CampaignCopilot: React.FC = () => {
                   ← Back
                 </Button>
               )}
-              <img src={finnyLogo} alt="Finny" className="h-8 w-auto" />
-              <div className="h-6 w-px bg-border" />
               <h1 className="text-xl font-semibold text-foreground">Winnie</h1>
             </div>
             
