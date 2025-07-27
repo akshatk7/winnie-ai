@@ -14,12 +14,7 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
   const { toast } = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
   
-  // Debug logging
-  console.log('FinalSend - selectedOption:', selectedOption);
-  console.log('FinalSend - proposalOptions:', proposalOptions);
-  
   const option = selectedOption !== null ? proposalOptions[selectedOption] : null;
-  console.log('FinalSend - option:', option);
   
   // Fallback data if option is null
   const fallbackOption = {
@@ -141,11 +136,7 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
               <div>
                 <h2 className="text-2xl font-bold text-success">🎉 Campaign Successfully Launched!</h2>
                 <p className="text-muted-foreground">
-                  Your {displayOption.option.toLowerCase()} campaign is now live and reaching {displayOption.reach.toLocaleString()} users via Braze
-                </p>
-                {/* Debug info - remove after fixing */}
-                <p className="text-xs text-muted-foreground mt-2">
-                  Debug: selectedOption={selectedOption}, hasOption={option ? 'yes' : 'no'}
+                  Your churn mitigation campaign is now live and reaching {displayOption.reach.toLocaleString()} users via Braze
                 </p>
               </div>
             </div>
