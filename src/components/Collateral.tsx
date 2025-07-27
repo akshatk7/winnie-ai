@@ -15,28 +15,18 @@ const Collateral: React.FC<CollateralProps> = ({ selectedOption, onNext }) => {
   const [editingChannel, setEditingChannel] = useState<string | null>(null);
   const [collateralContent, setCollateralContent] = useState({
     email: {
-      subject: selectedOption === 0 
-        ? "Important updates about your Finny account security" 
-        : "Good news! We're waiving your fees for 2 months",
-      body: selectedOption === 0
-        ? "Hi there! We've made significant improvements to your account security and reliability. Following recent system upgrades, your Finny account is now more secure than ever. Learn about our enhanced protection features and see how we're committed to keeping your money safe."
-        : "Hi there! We know you're exploring your options, and we want to show you why Finny is the right choice. For the next 2 months, we're waiving all account fees so you can experience our full value. Plus, discover our enhanced security features and see why customers trust us with their financial future."
+      subject: "We miss you! Here's what's new at Finny",
+      body: "Hi there! We've been working hard to improve your Finny experience and wanted to share some exciting updates. Our platform now offers enhanced security features, improved user experience, and new tools to help you manage your finances better. We'd love to have you back and show you what's changed. Your financial goals are important to us, and we're here to help you achieve them."
     },
     push: {
-      title: selectedOption === 0 ? "Account Security Update" : "Special Offer Just for You",
-      body: selectedOption === 0
-        ? "Your account is now more secure with our latest updates. Tap to learn more about enhanced protection."
-        : "2 months of fee-free banking starts now! Tap to see what's included in your offer."
+      title: "Your Finny account awaits",
+      body: "New features and improvements are ready for you. Tap to see what's changed and get back to achieving your financial goals."
     },
     sms: {
-      message: selectedOption === 0
-        ? "Finny here! Your account security has been enhanced with our latest updates. We've improved reliability and added new protection features. Reply STOP to opt out."
-        : "Finny here! Special offer: 2 months fee-free banking starting now. Experience our full value with enhanced security. Reply STOP to opt out."
+      message: "Finny here! We've made improvements to help you reach your financial goals. New security features and tools are waiting. Reply STOP to opt out."
     },
     inapp: {
-      banner: selectedOption === 0
-        ? "✅ Enhanced Security Active - Your account is now more protected than ever"
-        : "🎉 2 Months Fee-Free - Experience premium banking without the cost"
+      banner: "🌟 Welcome back! Discover new features and improvements designed for you"
     }
   });
 
@@ -57,14 +47,10 @@ const Collateral: React.FC<CollateralProps> = ({ selectedOption, onNext }) => {
     // Simulate AI regeneration
     const alternatives = {
       email: {
-        subject: selectedOption === 0 
-          ? ["Security improvements are here", "Your account is now more secure", "Important: Enhanced protection activated"]
-          : ["Your 2-month fee waiver starts now", "Special offer: Fee-free banking", "Exclusive: 2 months on us"],
+        subject: ["Come back to Finny - New features await", "Your financial journey continues here", "Exciting updates from your Finny team", "We've improved Finny just for you"],
       },
       push: {
-        title: selectedOption === 0 
-          ? ["Security Enhanced", "Protection Upgraded", "Safety Improved"]
-          : ["Fee Waiver Active", "Special Banking Offer", "Premium Access Granted"]
+        title: ["New Finny features", "Your account needs you", "Financial goals await", "Finny improvements ready"]
       }
     };
 
@@ -90,7 +76,7 @@ const Collateral: React.FC<CollateralProps> = ({ selectedOption, onNext }) => {
             <div>
               <CardTitle>Campaign Collateral</CardTitle>
               <p className="text-sm text-muted-foreground">
-                AI-generated messaging for {option.option} across all channels
+                AI-generated messaging for your churn mitigation strategy across all channels
               </p>
             </div>
             <Button onClick={onNext}>
