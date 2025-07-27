@@ -128,22 +128,17 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
   const calculateDynamicMetrics = (currentBudget: number): CampaignMetrics => {
     const reach = 12000; // Fixed reach at 12k as requested
     
-    // Reactivations increase with budget
-    const reactivations = Math.floor(reach * (0.1 + (currentBudget / 50000) * 0.15)); // 10% to 25% based on budget
+    // Reactivations: 1200 at 0 budget, +100 for every $1000
+    const reactivations = 1200 + Math.floor(currentBudget / 1000) * 100;
     
-    // ROI increases from 0 to 35k, then decreases from 35k to 50k
-    let roi: number;
-    if (currentBudget <= 35000) {
-      roi = (currentBudget / 35000) * 8.88; // Peak at 888.3% at 35k
-    } else {
-      roi = 8.88 - ((currentBudget - 35000) / 15000) * 2; // Decrease from 35k to 50k
-    }
+    // ROI: reactivations divided by budget, or "-" if budget is 0
+    const roi = currentBudget === 0 ? 0 : reactivations / currentBudget;
     
     return {
       totalReach: reach,
       expectedReactivations: reactivations,
       totalCost: currentBudget,
-      projectedROI: Math.max(0, roi)
+      projectedROI: roi
     };
   };
 
@@ -189,15 +184,27 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
           </div>
           <div className="max-w-md mx-auto">
             <label className="text-sm font-medium mb-2 block">Campaign Budget</label>
-            <input
-              type="number"
-              min="0"
-              max="50000"
-              value={budget}
-              onChange={(e) => setBudget(Math.min(50000, Math.max(0, Number(e.target.value))))}
-              className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Enter budget (0-50,000)"
-            />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <span className="text-muted-foreground">$</span>
+              </div>
+              <input
+                type="number"
+                min="0"
+                max="50000"
+                value={budget || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    setBudget(0);
+                  } else {
+                    setBudget(Math.min(50000, Math.max(0, Number(value))));
+                  }
+                }}
+                className="w-full pl-8 pr-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Enter budget (0-50,000)"
+              />
+            </div>
           </div>
         </div>
 
@@ -245,10 +252,12 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
                     <div className="p-2 bg-accent/10 rounded-lg">
                       <TrendingUp className="h-5 w-5 text-accent" />
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground font-medium">Projected ROI</p>
-                      <p className="text-2xl font-bold text-accent">{formatPercentage(campaignMetrics.projectedROI)}</p>
-                    </div>
+                     <div>
+                       <p className="text-sm text-muted-foreground font-medium">Projected ROI</p>
+                       <p className="text-2xl font-bold text-accent">
+                         {budget === 0 ? '-' : formatPercentage(campaignMetrics.projectedROI)}
+                       </p>
+                     </div>
                   </div>
                 </CardContent>
               </Card>
