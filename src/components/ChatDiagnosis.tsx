@@ -231,18 +231,8 @@ Do you want me to dive into the data and do a root cause analysis with data driv
           ))}
           
           {showAnalysis && (
-            <div className="space-y-4 mt-6">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Campaign Budget</label>
-                <Input
-                  type="number"
-                  value={budget}
-                  onChange={(e) => setBudget(Number(e.target.value))}
-                  placeholder="Enter budget amount"
-                  className="w-full"
-                />
-              </div>
-              <Button onClick={() => onNext(budget)} className="w-full">
+            <div className="mt-6">
+              <Button onClick={() => onNext(50000)} className="w-full">
                 Generate Recommended Campaign
               </Button>
             </div>

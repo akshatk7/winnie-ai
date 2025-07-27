@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { TrendingUp, Users, DollarSign, Target, Bot, BarChart3, Eye, FileText, CheckCircle, Brain } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Target, Bot, BarChart3, Eye, FileText, CheckCircle, Brain, Mail, Smartphone, Bell, Percent } from 'lucide-react';
 import { CampaignAction, ActionVariant, messagingActions, promotionalActions } from '@/data/actionLibrary';
 import UserProfileModal from './UserProfileModal';
 import TemplatePreviewModal from './TemplatePreviewModal';
@@ -30,8 +30,8 @@ interface CampaignSummaryProps {
 }
 
 const CampaignSummary: React.FC<CampaignSummaryProps> = ({
-  budget,
-  campaignMetrics,
+  budget: initialBudget,
+  campaignMetrics: initialMetrics,
   selectedActions,
   onAccept,
   onCustomize,
@@ -41,6 +41,7 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
   const [selectedActionForAnalysis, setSelectedActionForAnalysis] = useState<SelectedAction | null>(null);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [selectedActionForTemplate, setSelectedActionForTemplate] = useState<SelectedAction | null>(null);
+  const [budget, setBudget] = useState(initialBudget);
   
   const formatCurrency = (amount: number) => 
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -123,6 +124,52 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
            actionName.includes('push') || actionName.includes('in-app');
   };
 
+  // Calculate dynamic metrics based on budget
+  const calculateDynamicMetrics = (currentBudget: number): CampaignMetrics => {
+    const reach = 12000; // Fixed reach at 12k as requested
+    
+    // Reactivations increase with budget
+    const reactivations = Math.floor(reach * (0.1 + (currentBudget / 50000) * 0.15)); // 10% to 25% based on budget
+    
+    // ROI increases from 0 to 35k, then decreases from 35k to 50k
+    let roi: number;
+    if (currentBudget <= 35000) {
+      roi = (currentBudget / 35000) * 8.88; // Peak at 888.3% at 35k
+    } else {
+      roi = 8.88 - ((currentBudget - 35000) / 15000) * 2; // Decrease from 35k to 50k
+    }
+    
+    return {
+      totalReach: reach,
+      expectedReactivations: reactivations,
+      totalCost: currentBudget,
+      projectedROI: Math.max(0, roi)
+    };
+  };
+
+  const campaignMetrics = calculateDynamicMetrics(budget);
+
+  // Get the correct icon for each action
+  const getActionIcon = (action: CampaignAction) => {
+    const actionName = action.name.toLowerCase();
+    if (actionName.includes('email')) return <Mail className="h-6 w-6" />;
+    if (actionName.includes('sms')) return <Smartphone className="h-6 w-6" />;
+    if (actionName.includes('push') || actionName.includes('notification')) return <Bell className="h-6 w-6" />;
+    if (actionName.includes('discount') || actionName.includes('offer')) return <Percent className="h-6 w-6" />;
+    return action.icon;
+  };
+
+  // Calculate cost per user for discount actions based on budget
+  const getCostPerUser = (action: SelectedAction) => {
+    const actionName = action.action.name.toLowerCase();
+    if (actionName.includes('discount') || actionName.includes('offer')) {
+      // For discount offers, calculate cost per user so that total = budget
+      const discountUsers = 3200; // Fixed number of users for discount offers
+      return budget / discountUsers;
+    }
+    return action.variant.cost;
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <div className="space-y-8">
@@ -137,17 +184,21 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
               Recommended Campaign
             </h1>
             <p className="text-lg text-muted-foreground mt-2">
-              AI-optimized campaign for your {formatCurrency(budget)} budget
+              Personalized campaign setup at an individual user level to maximize impact and efficiency
             </p>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={onOpenCopilot}
-            className="flex items-center gap-2 hover:shadow-lg transition-shadow"
-          >
-            <Bot className="h-4 w-4" />
-            Ask AI Questions
-          </Button>
+          <div className="max-w-md mx-auto">
+            <label className="text-sm font-medium mb-2 block">Campaign Budget</label>
+            <input
+              type="number"
+              min="0"
+              max="50000"
+              value={budget}
+              onChange={(e) => setBudget(Math.min(50000, Math.max(0, Number(e.target.value))))}
+              className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Enter budget (0-50,000)"
+            />
+          </div>
         </div>
 
         {/* Campaign Metrics Overview */}
@@ -155,7 +206,7 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 rounded-2xl"></div>
           <div className="relative bg-card/80 backdrop-blur-sm border rounded-2xl p-6">
             <h3 className="text-xl font-semibold mb-6 text-center">Campaign Performance Metrics</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <CardContent className="p-6 relative">
@@ -186,20 +237,6 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
                 </CardContent>
               </Card>
 
-              <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-warning/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <CardContent className="p-6 relative">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-warning/10 rounded-lg">
-                      <DollarSign className="h-5 w-5 text-warning" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground font-medium">Total Cost</p>
-                      <p className="text-2xl font-bold">{formatCurrency(campaignMetrics.totalCost)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
 
               <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -246,7 +283,7 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
                         <div className="flex-1">
                           <div className="flex items-center gap-4 mb-4">
                             <div className="text-3xl p-3 bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl">
-                              {selectedAction.action.icon}
+                              {getActionIcon(selectedAction.action)}
                             </div>
                             <div className="flex-1">
                               <h4 className="text-lg font-semibold flex items-center gap-2">
@@ -277,15 +314,17 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
                               <Target className="h-4 w-4 text-success" />
                               <span className="font-medium">{selectedAction.variant.expectedImpact}% impact</span>
                             </div>
-                            <div className="flex items-center gap-2 bg-warning/5 px-3 py-2 rounded-lg">
-                              <DollarSign className="h-4 w-4 text-warning" />
-                              <span className="font-medium">
-                                {selectedAction.variant.cost === 0 
-                                  ? 'Free' 
-                                  : `${formatCurrency(selectedAction.variant.cost)} per user`
-                                }
-                              </span>
-                            </div>
+                            {!isMessagingAction(selectedAction.action) && (
+                              <div className="flex items-center gap-2 bg-warning/5 px-3 py-2 rounded-lg">
+                                <DollarSign className="h-4 w-4 text-warning" />
+                                <span className="font-medium">
+                                  {getCostPerUser(selectedAction) === 0 
+                                    ? 'Free' 
+                                    : `${formatCurrency(getCostPerUser(selectedAction))} per user`
+                                  }
+                                </span>
+                              </div>
+                            )}
                           </div>
                           
                           <div className="flex gap-3">
