@@ -263,7 +263,7 @@ const CampaignCopilot: React.FC = () => {
                 </Button>
               )}
               <div className="flex flex-col">
-                <h1 className="text-3xl font-bold text-primary font-playfair">Hooli Marketing</h1>
+                <h1 className="text-3xl font-bold text-primary">Hooli Marketing</h1>
                 <p className="text-sm text-muted-foreground">powered by Winnie 🐻</p>
               </div>
             </div>
