@@ -226,7 +226,7 @@ const BriefReview: React.FC<BriefReviewProps> = ({ selectedOption, onApprove, bu
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Target Reach</span>
-                <span className="font-medium">18,234</span>
+                <span className="font-medium">{option.reach.toLocaleString()}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Expected ROI</span>
