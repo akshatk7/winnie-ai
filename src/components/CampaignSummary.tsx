@@ -27,6 +27,7 @@ interface CampaignSummaryProps {
   onAccept: () => void;
   onCustomize: () => void;
   onOpenCopilot: () => void;
+  onBudgetChange?: (budget: number) => void;
 }
 
 const CampaignSummary: React.FC<CampaignSummaryProps> = ({
@@ -35,7 +36,8 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
   selectedActions,
   onAccept,
   onCustomize,
-  onOpenCopilot
+  onOpenCopilot,
+  onBudgetChange
 }) => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [selectedActionForAnalysis, setSelectedActionForAnalysis] = useState<SelectedAction | null>(null);
@@ -195,11 +197,14 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
                 value={budget || ''}
                 onChange={(e) => {
                   const value = e.target.value;
+                  let newBudget = 0;
                   if (value === '') {
-                    setBudget(0);
+                    newBudget = 0;
                   } else {
-                    setBudget(Math.min(50000, Math.max(0, Number(value))));
+                    newBudget = Math.min(50000, Math.max(0, Number(value)));
                   }
+                  setBudget(newBudget);
+                  onBudgetChange?.(newBudget);
                 }}
                 className="w-full pl-8 pr-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Enter budget (0-50,000)"

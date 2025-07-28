@@ -196,6 +196,7 @@ const CampaignCopilot: React.FC = () => {
             }}
             onCustomize={() => updateStage('proposal_choice')}
             onOpenCopilot={() => {}}
+            onBudgetChange={updateBudget}
           />
         );
       case 'proposal_choice':
