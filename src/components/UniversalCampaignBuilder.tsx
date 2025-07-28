@@ -75,7 +75,7 @@ const UniversalCampaignBuilder: React.FC<UniversalCampaignBuilderProps> = ({
     constraints: [...defaultConstraints],
     assignments: [],
     totalCost: 0,
-    totalReach: 18234,
+    totalReach: 12000,
     expectedReactivations: 0,
     presetApplied: undefined
   });
@@ -586,7 +586,7 @@ const UniversalCampaignBuilder: React.FC<UniversalCampaignBuilderProps> = ({
           onClose={() => setShowUserModal(false)}
           userProfiles={[]}
           segmentSummary={{
-            totalUsers: 18234,
+            totalUsers: 12000,
             avgTenure: 28,
             avgLTV: 485,
             topChannels: [

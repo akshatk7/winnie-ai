@@ -59,7 +59,7 @@ export const generateRecommendedCampaign = (budget: number): RecommendedCampaign
     let selectedVariant = discountAction.variants[0]; // 10% discount
     
     // Choose variant based on budget per user (cost * reach)
-    const budgetPerUser = remainingBudget / 18234;
+    const budgetPerUser = remainingBudget / 12000;
     if (budgetPerUser >= 5) {
       selectedVariant = discountAction.variants[1]; // 20% discount
     }
@@ -78,7 +78,7 @@ export const generateRecommendedCampaign = (budget: number): RecommendedCampaign
   }
 
   // Add free months if budget allows
-  if (remainingBudget >= 300000) { // 15 * 18234
+  if (remainingBudget >= 180000) { // 15 * 12000
     const freeMonthAction = availablePromos.find(a => a.id === 'free_months');
     if (freeMonthAction) {
       const selectedVariant = freeMonthAction.variants[0]; // 1 month free

@@ -172,14 +172,14 @@ export const hypothesesData = [
 export const proposalOptions = [
   {
     option: "Messaging-Only Winback",
-    reach: 18234,
+    reach: 12000,
     expected_reactivations: 1460,
     cost: 2500,
     description: "Educational messaging about product value and improved reliability"
   },
   {
     option: "Promotional Winback",
-    reach: 18234,
+    reach: 12000,
     expected_reactivations: 2920,
     cost: 25000,
     description: "2-month fee waiver + educational messaging combo"

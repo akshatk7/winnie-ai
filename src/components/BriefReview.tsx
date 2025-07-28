@@ -48,7 +48,7 @@ const BriefReview: React.FC<BriefReviewProps> = ({ selectedOption, onApprove, bu
       ? "Educational messaging about product value and improved reliability targeting users at risk of churn"
       : "Strategic promotional campaign combining fee waivers with educational messaging to retain high-value users",
     
-    target_audience: "Users with LTV > $300, last active within 45 days, flagged as incremental based on our ML model. Approximately 18,234 users meet these criteria.",
+    target_audience: "Users with LTV > $300, last active within 45 days, flagged as incremental based on our ML model. Approximately 12,000 users meet these criteria.",
     
     success_metrics: [
       `Primary: Reduce churn rate from 6% to 4.5% within ${selectedOption === 0 ? '2 weeks' : '8 weeks'}`,

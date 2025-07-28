@@ -168,7 +168,7 @@ const Approvals: React.FC<ApprovalsProps> = ({ approvals, onApprove, onLaunch })
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-muted rounded-lg">
-              <p className="text-2xl font-bold">18,234</p>
+              <p className="text-2xl font-bold">12,000</p>
               <p className="text-xs text-muted-foreground">Target Users</p>
             </div>
             <div className="text-center p-3 bg-muted rounded-lg">

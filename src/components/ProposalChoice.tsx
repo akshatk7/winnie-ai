@@ -58,16 +58,16 @@ const ProposalChoice: React.FC<ProposalChoiceProps> = ({
       {
         title: "Messaging-Only Winback",
         totalCost: baseCost,
-        totalReach: 18234,
-        totalReactivations: Math.floor(18234 * 0.08),
+        totalReach: 12000,
+        totalReactivations: Math.floor(12000 * 0.08),
         blocks: [
           {
             type: 'messaging',
             title: 'Multi-Channel Education Series',
             description: 'Personalized messaging across preferred channels',
             cost: baseCost,
-            reach: 18234,
-            reactivations: Math.floor(18234 * 0.08),
+            reach: 12000,
+            reactivations: Math.floor(12000 * 0.08),
             details: {
               subComponents: [
                 { channel: 'email', reach: 12000, templates: ['Value Reminder', 'Feature Update', 'Success Stories'] },
@@ -93,16 +93,16 @@ const ProposalChoice: React.FC<ProposalChoiceProps> = ({
         {
           title: "Promotional Winback",
           totalCost: promoCost,
-          totalReach: 18234,
-          totalReactivations: Math.floor(18234 * 0.16),
+          totalReach: 12000,
+          totalReactivations: Math.floor(12000 * 0.16),
           blocks: [
             {
               type: 'promo',
               title: `${discountPercent}% Off + ${freeMonths} Months Free`,
               description: `Personalized ${discountPercent}% discount with ${freeMonths} free months`,
               cost: promoCost * 0.75,
-              reach: 18234,
-              reactivations: Math.floor(18234 * 0.12),
+              reach: 12000,
+              reactivations: Math.floor(12000 * 0.12),
               details: {
                 discountPercent,
                 freeMonths,
@@ -115,13 +115,13 @@ const ProposalChoice: React.FC<ProposalChoiceProps> = ({
               title: 'Promotional Support Messaging',
               description: 'Educational content to support the promotional offer',
               cost: promoCost * 0.25,
-              reach: 18234,
-              reactivations: Math.floor(18234 * 0.04),
+              reach: 12000,
+              reactivations: Math.floor(12000 * 0.04),
               details: {
                 subComponents: [
-                  { channel: 'email', reach: 18234, templates: ['Offer Announcement', 'Value Explanation', 'Last Chance'] },
+                  { channel: 'email', reach: 12000, templates: ['Offer Announcement', 'Value Explanation', 'Last Chance'] },
                   { channel: 'sms', reach: 12000, templates: ['Offer Reminder', 'Deadline Alert'] },
-                  { channel: 'push', reach: 15000, templates: ['Offer Available', 'Limited Time'] }
+                  { channel: 'push', reach: 12000, templates: ['Offer Available', 'Limited Time'] }
                 ]
               }
             }
@@ -141,7 +141,7 @@ const ProposalChoice: React.FC<ProposalChoiceProps> = ({
   };
 
   const segmentSummary = {
-    totalUsers: 18234,
+    totalUsers: 12000,
     avgTenure: 28,
     avgLTV: 485,
     topChannels: [

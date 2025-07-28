@@ -312,7 +312,7 @@ What constraint would you like to modify?`,
   };
 
   const handleAnalysis = (query: string): ChatMessage => {
-    const totalUsers = 18234;
+    const totalUsers = 12000;
     const emailUsers = Math.floor(totalUsers * 0.65);
     const discountUsers = Math.floor(totalUsers * 0.40);
     

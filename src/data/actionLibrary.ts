@@ -286,7 +286,7 @@ export const promotionalActions: CampaignAction[] = [
         name: '1 Month Free',
         description: '1 month of free service',
         cost: 15.00,
-        reach: 18234,
+        reach: 12000,
         expectedImpact: 20,
         personalizedValue: '1 month'
       },
@@ -295,7 +295,7 @@ export const promotionalActions: CampaignAction[] = [
         name: '2 Months Free',
         description: '2 months of free service',
         cost: 30.00,
-        reach: 18234,
+        reach: 12000,
         expectedImpact: 30,
         personalizedValue: '2 months'
       },
@@ -304,7 +304,7 @@ export const promotionalActions: CampaignAction[] = [
         name: '3 Months Free',
         description: '3 months of free service',
         cost: 45.00,
-        reach: 18234,
+        reach: 12000,
         expectedImpact: 40,
         personalizedValue: '3 months'
       }
@@ -325,7 +325,7 @@ export const promotionalActions: CampaignAction[] = [
         name: '$25 Cashback',
         description: '$25 cash bonus for reactivation',
         cost: 25.00,
-        reach: 18234,
+        reach: 12000,
         expectedImpact: 22,
         personalizedValue: '$25'
       },
@@ -334,7 +334,7 @@ export const promotionalActions: CampaignAction[] = [
         name: '$50 Cashback',
         description: '$50 cash bonus for reactivation',
         cost: 50.00,
-        reach: 18234,
+        reach: 12000,
         expectedImpact: 35,
         personalizedValue: '$50'
       },
@@ -364,7 +364,7 @@ export const promotionalActions: CampaignAction[] = [
         name: 'Transaction Fee Waiver',
         description: 'Waive transaction fees for 6 months',
         cost: 8.00,
-        reach: 18234,
+        reach: 12000,
         expectedImpact: 15,
         personalizedValue: 'Transaction fees'
       },
@@ -373,7 +373,7 @@ export const promotionalActions: CampaignAction[] = [
         name: 'Monthly Fee Waiver',
         description: 'Waive monthly service fee for 3 months',
         cost: 12.00,
-        reach: 18234,
+        reach: 12000,
         expectedImpact: 20,
         personalizedValue: 'Monthly fees'
       },

@@ -18,7 +18,7 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
   
   // Fallback data if option is null
   const fallbackOption = {
-    reach: 18234,
+    reach: 12000,
     expected_reactivations: 3647,
     cost: 25000,
     option: 'Security-First Approach'
