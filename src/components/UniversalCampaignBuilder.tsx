@@ -43,6 +43,7 @@ interface UniversalCampaignBuilderProps {
   selectedOption: number | null;
   onSelectOption: (option: number) => void;
   onNext: () => void;
+  budget?: number;
 }
 
 interface CampaignState {
@@ -65,11 +66,12 @@ const iconMap: Record<string, any> = {
 const UniversalCampaignBuilder: React.FC<UniversalCampaignBuilderProps> = ({ 
   selectedOption, 
   onSelectOption, 
-  onNext 
+  onNext,
+  budget = 0
 }) => {
   const [campaignState, setCampaignState] = useState<CampaignState>({
-    budget: 0,
-    budgetSet: false,
+    budget: budget,
+    budgetSet: budget > 0,
     selectedActions: [],
     excludedActions: [],
     constraints: [...defaultConstraints],

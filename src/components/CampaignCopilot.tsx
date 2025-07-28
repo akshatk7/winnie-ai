@@ -204,6 +204,7 @@ const CampaignCopilot: React.FC = () => {
             selectedOption={state.selectedOption}
             onSelectOption={updateSelectedOption}
             onNext={() => updateStage('brief_review')}
+            budget={state.budget || 0}
           />
         );
       case 'brief_review':
@@ -241,10 +242,11 @@ const CampaignCopilot: React.FC = () => {
             approvals={state.approvals}
             onApprove={(type) => updateApproval(type, true)}
             onLaunch={() => updateStage('final_send')}
+            budget={state.budget || 0}
           />
         );
       case 'final_send':
-        return <FinalSend selectedOption={state.selectedOption} />;
+        return <FinalSend selectedOption={state.selectedOption} budget={state.budget || 0} />;
       default:
         return <Dashboard onAskCopilot={() => updateStage('chat_diag')} />;
     }

@@ -8,9 +8,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface FinalSendProps {
   selectedOption: number | null;
+  budget?: number;
 }
 
-const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
+const FinalSend: React.FC<FinalSendProps> = ({ selectedOption, budget = 0 }) => {
   const { toast } = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
   
@@ -19,12 +20,12 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption }) => {
   // Fallback data if option is null
   const fallbackOption = {
     reach: 12000,
-    expected_reactivations: 3647,
-    cost: 25000,
-    option: 'Security-First Approach'
+    expected_reactivations: 1460,
+    cost: budget || 2500,
+    option: 'AI-Generated Campaign'
   };
   
-  const displayOption = option || fallbackOption;
+  const displayOption = option ? { ...option, cost: budget || option.cost } : fallbackOption;
 
   useEffect(() => {
     // Show success animation

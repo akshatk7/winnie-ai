@@ -13,9 +13,10 @@ interface ApprovalsProps {
   };
   onApprove: (type: 'brief' | 'experiment' | 'design') => void;
   onLaunch: () => void;
+  budget?: number;
 }
 
-const Approvals: React.FC<ApprovalsProps> = ({ approvals, onApprove, onLaunch }) => {
+const Approvals: React.FC<ApprovalsProps> = ({ approvals, onApprove, onLaunch, budget = 0 }) => {
   const { toast } = useToast();
 
   const handleXFNApproval = () => {
@@ -180,7 +181,7 @@ const Approvals: React.FC<ApprovalsProps> = ({ approvals, onApprove, onLaunch })
               <p className="text-xs text-muted-foreground">Days Duration</p>
             </div>
             <div className="text-center p-3 bg-muted rounded-lg">
-              <p className="text-2xl font-bold">$25K</p>
+              <p className="text-2xl font-bold">${budget ? (budget / 1000).toFixed(0) : '0'}K</p>
               <p className="text-xs text-muted-foreground">Total Budget</p>
             </div>
           </div>
