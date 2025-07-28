@@ -201,7 +201,7 @@ const CampaignSummary: React.FC<CampaignSummaryProps> = ({
                   if (value === '') {
                     newBudget = 0;
                   } else {
-                    newBudget = Math.min(50000, Math.max(0, Number(value)));
+                    newBudget = Math.min(50000, Math.max(0, parseInt(value, 10) || 0));
                   }
                   setBudget(newBudget);
                   onBudgetChange?.(newBudget);

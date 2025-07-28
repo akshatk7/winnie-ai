@@ -25,7 +25,7 @@ const FinalSend: React.FC<FinalSendProps> = ({ selectedOption, budget = 0 }) => 
     option: 'AI-Generated Campaign'
   };
   
-  const displayOption = option ? { ...option, cost: budget || option.cost } : fallbackOption;
+  const displayOption = option ? { ...option, cost: budget > 0 ? budget : option.cost } : fallbackOption;
 
   useEffect(() => {
     // Show success animation
