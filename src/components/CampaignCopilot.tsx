@@ -262,7 +262,10 @@ const CampaignCopilot: React.FC = () => {
                   ← Back
                 </Button>
               )}
-              <h1 className="text-xl font-semibold text-foreground">Winnie</h1>
+              <div className="flex flex-col">
+                <h1 className="text-3xl font-bold text-primary font-playfair">Hooli Marketing</h1>
+                <p className="text-sm text-muted-foreground">powered by Winnie 🐻</p>
+              </div>
             </div>
             
             {/* Action Buttons */}
