@@ -16,18 +16,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onAskCopilot }) => {
   const previousChurn = 4.0;
   const churnChange = currentChurn - previousChurn;
 
-  const [quickAskInput, setQuickAskInput] = React.useState('');
+  
 
   const handleOpportunityClick = (message: string) => {
     onAskCopilot(message);
   };
 
-  const handleQuickAsk = () => {
-    if (quickAskInput.trim()) {
-      onAskCopilot(quickAskInput);
-      setQuickAskInput('');
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -255,30 +249,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onAskCopilot }) => {
         </div>
       </div>
 
-      {/* Quick Ask Bar - Sticky */}
-      <div id="quickAskBar" className="fixed bottom-6 right-6 z-50 max-w-sm fade-in">
-        <Card className="shadow-xl border-2">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Input
-                placeholder="Quick ask Winnie..."
-                value={quickAskInput}
-                onChange={(e) => setQuickAskInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleQuickAsk()}
-                className="flex-1"
-              />
-              <Button 
-                onClick={handleQuickAsk}
-                size="sm"
-                className="px-3"
-                disabled={!quickAskInput.trim()}
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };
