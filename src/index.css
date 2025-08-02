@@ -115,5 +115,32 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    padding-top: 32px; /* Account for sticky header */
   }
+  
+  /* Phase 1 CSS Variables */
+  :root {
+    --color-primary: #6236FF;
+    --color-danger: #E63E44;
+    --color-neutral: #656565;
+    --font-headline: 20px;
+    --font-body: 14px;
+    --font-caption: 12px;
+  }
+}
+
+/* Fade-in animation */
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 150ms ease;
 }
