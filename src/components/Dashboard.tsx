@@ -2,18 +2,32 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Brain, AlertTriangle, Users, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown, Brain, AlertTriangle, Users, DollarSign, ArrowRight, Send, UserCheck, Clock } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { mockData } from '@/data/mockData';
+import { Input } from '@/components/ui/input';
 
 interface DashboardProps {
-  onAskCopilot: () => void;
+  onAskCopilot: (prefilledMessage?: string) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onAskCopilot }) => {
   const currentChurn = 6.0;
   const previousChurn = 4.0;
   const churnChange = currentChurn - previousChurn;
+
+  const [quickAskInput, setQuickAskInput] = React.useState('');
+
+  const handleOpportunityClick = (message: string) => {
+    onAskCopilot(message);
+  };
+
+  const handleQuickAsk = () => {
+    if (quickAskInput.trim()) {
+      onAskCopilot(quickAskInput);
+      setQuickAskInput('');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -91,7 +105,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onAskCopilot }) => {
                 </p>
               </div>
             </div>
-            <Button onClick={onAskCopilot} className="bg-gradient-to-r from-primary to-accent hover:opacity-90">
+            <Button onClick={() => onAskCopilot()} className="bg-gradient-to-r from-primary to-accent hover:opacity-90">
               <Brain className="h-4 w-4 mr-2" />
               Ask Winnie
             </Button>
@@ -167,6 +181,101 @@ const Dashboard: React.FC<DashboardProps> = ({ onAskCopilot }) => {
                 </div>
               </div>
             ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Opportunities Section */}
+      <div id="opportunitiesSection" className="space-y-4">
+        <h2 className="text-xl font-semibold">Opportunities</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer fade-in">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <UserCheck className="h-6 w-6 text-warning" />
+                  <div>
+                    <CardTitle className="text-lg">Onboarding Drop-Off</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      42% of new users fail KYC in first 7 days
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  Potential revenue impact: $180k/month
+                </div>
+                <Button 
+                  onClick={() => handleOpportunityClick("Can you audit our onboarding flow and suggest quick wins?")}
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <span>Analyze & fix</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer fade-in">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Clock className="h-6 w-6 text-primary" />
+                  <div>
+                    <CardTitle className="text-lg">Dormant Power Users</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      3,810 high-LTV users inactive &gt; 30 days
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  Average LTV: $1,240 per user
+                </div>
+                <Button 
+                  onClick={() => handleOpportunityClick("Help me create a reactivation campaign for dormant high-value users")}
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <span>Reactivate</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Quick Ask Bar - Sticky */}
+      <div id="quickAskBar" className="fixed bottom-6 right-6 z-50 max-w-sm fade-in">
+        <Card className="shadow-xl border-2">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Input
+                placeholder="Quick ask Winnie..."
+                value={quickAskInput}
+                onChange={(e) => setQuickAskInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleQuickAsk()}
+                className="flex-1"
+              />
+              <Button 
+                onClick={handleQuickAsk}
+                size="sm"
+                className="px-3"
+                disabled={!quickAskInput.trim()}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

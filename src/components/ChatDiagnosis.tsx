@@ -18,9 +18,21 @@ interface ChatDiagnosisProps {
   onAddMessage: (role: 'user' | 'assistant', content: string) => void;
   onAnalysisComplete: () => void;
   onNext: (budget: number) => void;
+  prefilledMessage?: string;
+  showOnboardingCards?: boolean;
+  onShowOnboardingCards?: () => void;
 }
 
-const ChatDiagnosis: React.FC<ChatDiagnosisProps> = ({ messages, hasAnalyzed, onAddMessage, onAnalysisComplete, onNext }) => {
+const ChatDiagnosis: React.FC<ChatDiagnosisProps> = ({ 
+  messages, 
+  hasAnalyzed, 
+  onAddMessage, 
+  onAnalysisComplete, 
+  onNext, 
+  prefilledMessage,
+  showOnboardingCards,
+  onShowOnboardingCards 
+}) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [budget, setBudget] = useState<number>(50000);
@@ -29,20 +41,27 @@ const ChatDiagnosis: React.FC<ChatDiagnosisProps> = ({ messages, hasAnalyzed, on
   const [analysisReady, setAnalysisReady] = useState(false);
 
   useEffect(() => {
-    // Auto-start the conversation with pre-seeded question
+    // Auto-start the conversation with pre-seeded question or prefilled message
     if (messages.length === 0) {
       setTimeout(() => {
-        onAddMessage('user', 'Why is our churn rate spiking? Can you analyze the data and provide insights?');
+        const message = prefilledMessage || 'Why is our churn rate spiking? Can you analyze the data and provide insights?';
+        onAddMessage('user', message);
       }, 500);
     }
-  }, []);
+  }, [prefilledMessage]);
 
   useEffect(() => {
     // Initial AI response asking for permission to dive deeper
     if (messages.length === 1 && messages[0].role === 'user' && !isThinking && !analysisReady) {
       setIsLoading(true);
       setTimeout(() => {
-        const initialResponse = `I've analyzed your churn data, recent campaigns, market intelligence, and system incidents. Here are my findings:
+        let initialResponse;
+        
+        // Check if this is an onboarding audit request
+        if (prefilledMessage?.toLowerCase().includes('onboarding')) {
+          initialResponse = "I can pull drop-off data and show a root-cause analysis. Want me to dive in?";
+        } else {
+          initialResponse = `I've analyzed your churn data, recent campaigns, market intelligence, and system incidents. Here are my findings:
 
 **Key Insights:**
 • Churn spiked from 4% to 6% starting 3 days ago
@@ -50,12 +69,13 @@ const ChatDiagnosis: React.FC<ChatDiagnosisProps> = ({ messages, hasAnalyzed, on
 • Competitor activity and technical issues are contributing factors
 
 Do you want me to dive into the data and do a root cause analysis with data driven hypothesis?`;
+        }
         
         onAddMessage('assistant', initialResponse);
         setIsLoading(false);
       }, 2000);
     }
-  }, [messages, isThinking, analysisReady, onAddMessage]);
+  }, [messages, isThinking, analysisReady, onAddMessage, prefilledMessage]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -66,17 +86,25 @@ Do you want me to dive into the data and do a root cause analysis with data driv
     
     // Check if user is confirming they want the deep analysis
     if ((userMessage.includes('yes') || userMessage.includes('do it') || userMessage.includes('proceed')) && !isThinking && !analysisReady) {
-      // Start the thinking process
-      setIsThinking(true);
-      setTimeout(() => {
-        onAddMessage('assistant', 'Starting deep data analysis...');
-        
-        // After 3 seconds of thinking, show analysis ready
+      // Check if this is for onboarding analysis
+      if (prefilledMessage?.toLowerCase().includes('onboarding')) {
+        // Show onboarding cards immediately
+        if (onShowOnboardingCards) {
+          onShowOnboardingCards();
+        }
+      } else {
+        // Start the thinking process for churn analysis
+        setIsThinking(true);
         setTimeout(() => {
-          setIsThinking(false);
-          setAnalysisReady(true);
-        }, 3000);
-      }, 1000);
+          onAddMessage('assistant', 'Starting deep data analysis...');
+          
+          // After 3 seconds of thinking, show analysis ready
+          setTimeout(() => {
+            setIsThinking(false);
+            setAnalysisReady(true);
+          }, 3000);
+        }, 1000);
+      }
     } else if (!analysisReady) {
       // General response for other messages
       setTimeout(() => {
@@ -173,6 +201,60 @@ Do you want me to dive into the data and do a root cause analysis with data driv
                     Churn Cause Analysis Ready
                   </Button>
                 </div>
+              </div>
+            )}
+
+            {/* Onboarding Analysis Cards */}
+            {showOnboardingCards && (
+              <div className="space-y-4 fade-in">
+                {/* Card 1: New user funnel drop-off */}
+                <Card className="bg-gradient-to-r from-red-50 to-transparent">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">New user funnel drop-off</CardTitle>
+                    <p className="text-sm text-muted-foreground">42% quit at KYC step • 19% at card-link step.</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-24 bg-muted rounded-md flex items-center justify-center mb-3">
+                      <span className="text-xs text-muted-foreground">[Bar chart placeholder]</span>
+                    </div>
+                    <Button className="w-full bg-primary" onClick={() => onNext(30000)}>
+                      Create Campaign
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Card 2: Frequent support topics */}
+                <Card className="bg-gradient-to-r from-yellow-50 to-transparent">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Frequent support topics</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2 text-sm mb-4">
+                      <li>💳 Card-link errors</li>
+                      <li>🕓 Verification delays</li>
+                      <li>❓ Missing bank list</li>
+                    </ul>
+                    <Button className="w-full bg-primary" onClick={() => onNext(25000)}>
+                      Create Campaign
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Card 3: Time to first transaction */}
+                <Card className="bg-gradient-to-r from-blue-50 to-transparent">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Time to first transaction</CardTitle>
+                    <p className="text-sm text-muted-foreground">Median 4 days • 80th pct 9 days.</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-24 bg-muted rounded-md flex items-center justify-center mb-3">
+                      <span className="text-xs text-muted-foreground">[Funnel graphic placeholder]</span>
+                    </div>
+                    <Button className="w-full bg-primary" onClick={() => onNext(40000)}>
+                      Create Campaign
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
             )}
           </div>

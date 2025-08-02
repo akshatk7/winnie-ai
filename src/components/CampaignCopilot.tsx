@@ -56,6 +56,8 @@ interface CopilotState {
     design: boolean;
   };
   savedProposals: SavedProposal[];
+  prefilledMessage?: string;
+  showOnboardingCards: boolean;
 }
 
 const CampaignCopilot: React.FC = () => {
@@ -71,7 +73,8 @@ const CampaignCopilot: React.FC = () => {
       experiment: false,
       design: false
     },
-    savedProposals: []
+    savedProposals: [],
+    showOnboardingCards: false
   });
 
   const { toast } = useToast();
@@ -167,7 +170,12 @@ const CampaignCopilot: React.FC = () => {
   const renderCurrentStage = () => {
     switch (state.stage) {
       case 'dashboard':
-        return <Dashboard onAskCopilot={() => updateStage('chat_diag')} />;
+        return <Dashboard onAskCopilot={(prefilledMessage) => {
+          if (prefilledMessage) {
+            setState(prev => ({ ...prev, prefilledMessage }));
+          }
+          updateStage('chat_diag');
+        }} />;
       case 'chat_diag':
         return (
           <ChatDiagnosis 
@@ -175,6 +183,9 @@ const CampaignCopilot: React.FC = () => {
             hasAnalyzed={state.hasAnalyzed}
             onAddMessage={addChatMessage}
             onAnalysisComplete={() => updateAnalysisStatus(true)}
+            prefilledMessage={state.prefilledMessage}
+            showOnboardingCards={state.showOnboardingCards}
+            onShowOnboardingCards={() => setState(prev => ({ ...prev, showOnboardingCards: true }))}
             onNext={(budget: number) => {
               updateBudget(budget);
               const campaign = generateRecommendedCampaign(budget);
