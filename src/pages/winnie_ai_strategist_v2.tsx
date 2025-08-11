@@ -7,6 +7,9 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { Bell, Brain, Check, Download, ShieldCheck, Send } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { anomalyAlerts, channelLiftTable, eligibleUsersBySegment, activeCampaigns, pastResults, metricGoals, diagnosticHypotheses } from "@/data/ai-strategist-mock-data";
+import { overlaps, fatigueScore, projectedImprovement } from "@/lib/ai-strategist-utils";
 
 // Types
 interface MetricPreference {
@@ -74,201 +77,169 @@ const LS_KEYS = {
 // Helpers
 const formatPct = (n: number) => `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
 
-function calcStdDev(arr: number[]) {
-  const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
-  const variance = arr.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / arr.length;
-  return { mean, std: Math.sqrt(variance) };
+type Channel = 'email'|'push'|'sms'|'inapp'|'discount';
+
+function mapAlertsForUI() {
+  const nowIso = new Date().toISOString();
+  return anomalyAlerts.map(a => ({
+    id: a.id,
+    metric: a.label,
+    segment: a.segment,
+    title: `${a.label} (${a.segment})`,
+    description: `${a.label}: baseline ${a.baseline}${a.label.includes('%') ? '%' : ''}, now ${a.current}${a.label.includes('%') ? '%' : ''}.` ,
+    deltaPct: a.change,
+    direction: (a.change >= 0 ? 'up' : 'down') as 'up'|'down',
+    severity: a.severity,
+    chart: a.sparkline,
+    timestamp: nowIso,
+  }));
 }
 
-function genSparkline(base: number, noise: number, len = 14, spikeAtEnd?: number) {
-  const data: number[] = [];
-  for (let i = 0; i < len - 1; i++) {
-    data.push(Math.max(0, base + (Math.random() - 0.5) * noise));
+function getHypotheses(metric: string, segment: string) {
+  const key = `${metric}|${segment}`;
+  const m = diagnosticHypotheses[key] || [
+    { title: 'Behavioral shift', evidence: 'Recent usage pattern change detected.' },
+    { title: 'Seasonality', evidence: 'Metric shows expected seasonal variance.' },
+    { title: 'Experiment contamination', evidence: 'Overlapping tests may affect outcome.' }
+  ];
+  return m.slice(0,3);
+}
+
+function defaultChannelsForMetric(metricCode: string): Channel[] {
+  switch (metricCode) {
+    case 'churn_rate':
+      return ['push','email','discount'];
+    case 'push_ctr':
+      return ['push','inapp'];
+    case 'retention_30d':
+      return ['email','push','inapp'];
+    default:
+      return ['push','email'];
   }
-  data.push(spikeAtEnd ?? Math.max(0, base + (Math.random() - 0.5) * noise));
-  return data.map((v) => Number(v.toFixed(2)));
 }
 
+function toAudienceQuery(segment: string): string {
+  if (segment === 'highLtv') return 'traits.highLtv == true AND last_active_days > 7';
+  if (segment === 'newUsers30d') return 'traits.signup_days <= 30';
+  if (segment === 'nyc') return "traits.city == 'NYC'";
+  return `traits.${segment} == true`;
+}
+
+function buildBrazePlanJson(opts: {
+  name: string;
+  priority: number;
+  targetMetric: string; // code
+  segment: string;
+  channels: Channel[];
+  expectedImprovementPct: number;
+}): any {
+  const channels = opts.channels.map((c) => ({ type: c, ...(c === 'push' ? { window: '09:00-20:00' } : {}) }));
+  return {
+    name: opts.name,
+    priority: opts.priority,
+    target_metric: opts.targetMetric,
+    audience_query: toAudienceQuery(opts.segment),
+    channels,
+    experiment: { holdout_pct: 10, notes: 'RL policy vs status quo' },
+    exclusions: ['recent_opt_out', 'credit_risk_block'],
+    expected_improvement_pct: Number(opts.expectedImprovementPct.toFixed(1))
+  };
+}
+
+// Additional helpers
 function brazeCsv(rows: any[]) {
   const headers = Object.keys(rows[0] || {});
   const csv = [headers.join(","), ...rows.map((r) => headers.map((h) => JSON.stringify(r[h] ?? "")).join(","))].join("\n");
   return csv;
 }
 
-// Mock "existing" active campaigns for governance
-const ACTIVE_CAMPAIGNS = [
-  { name: "Weekly Deals Push", segments: ["all-users", "deal-seekers"], channels: ["push"], active: true },
-  { name: "Premium Upsell", segments: ["premium-trial"], channels: ["email"], active: true },
-  { name: "Churn Prevention Wave", segments: ["lapsed-30"], channels: ["sms", "push"], active: true },
-];
+function makePlanFromContext(context: { intent: string; cohorts: string[]; channels: string[]; budget?: string; includeIncentive?: boolean; }): CampaignPlan {
+  const cohorts = context.cohorts.length ? context.cohorts : ['highLtv'];
+  const audience = cohorts.map((seg) => ({ name: seg, count: eligibleUsersBySegment[seg as keyof typeof eligibleUsersBySegment] ?? 8000 }));
+  const eligibleMin = audience.reduce((m, a) => Math.min(m, a.count), Infinity);
+  const primarySeg = cohorts[0];
 
-const SEGMENT_SIZES: Record<string, number> = {
-  "all-users": 120_000,
-  "high-ltv": 12_000,
-  "lapsed-30": 15_000,
-  "week1-drop": 12_450,
-  "premium": 8_400,
-  "nyc": 22_300,
-  "premium-trial": 5_200,
-};
+  const intent = context.intent.toLowerCase();
+  const metricCode = /push|ctr|engagement/.test(intent) && cohorts.includes('nyc')
+    ? 'push_ctr'
+    : /onboarding|retention|d30/.test(intent)
+    ? 'retention_30d'
+    : 'churn_rate';
 
-const SEGMENT_FATIGUE: Record<string, number> = {
-  "all-users": 2,
-  "high-ltv": 3,
-  "lapsed-30": 4,
-  "week1-drop": 1,
-  "premium": 2,
-  "nyc": 1,
-  "premium-trial": 5,
-};
+  const chosenChannels = (context.channels.length ? context.channels : defaultChannelsForMetric(metricCode)) as Channel[];
+  const discountAllowed = Boolean(context.includeIncentive || context.budget);
+  const expectedImprovement = projectedImprovement(chosenChannels, channelLiftTable as any, discountAllowed);
 
-function computeAlerts(): AlertItem[] {
-  // Mock 1: churn up for Segment A (high-value)
-  const churnSpark = genSparkline(6, 0.8, 14, 8.2); // last point higher
-  const { mean, std } = calcStdDev(churnSpark.slice(0, -1));
-  const last = churnSpark[churnSpark.length - 1];
-  const churnAlert: AlertItem | null = last > mean + 2 * std
-    ? {
-        id: "alert-1",
-        metric: "Churn Rate",
-        segment: "high-ltv",
-        title: "Churn rate for high-LTV users increased",
-        description: `Churn moved to ${last.toFixed(1)}% vs avg ${mean.toFixed(1)}%.`,
-        deltaPct: ((last - mean) / mean) * 100,
-        direction: "up",
-        severity: "high",
-        chart: churnSpark,
-        timestamp: new Date().toISOString(),
-      }
-    : null;
+  const today = new Date();
+  const start = today.toISOString().slice(0,10);
+  const end = new Date(today.getTime() + 7*24*60*60*1000).toISOString().slice(0,10);
+  const colliders = activeCampaigns.filter(c => overlaps(start, end, c.start, c.end) && c.segments.some(s => cohorts.includes(s)));
 
-  // Mock 2: push engagement up in NYC
-  const pushSpark = genSparkline(18, 1.0, 14, 22);
-  const { mean: pMean, std: pStd } = calcStdDev(pushSpark.slice(0, -1));
-  const pLast = pushSpark[pushSpark.length - 1];
-  const pushAlert: AlertItem | null = pLast > pMean + 2 * pStd
-    ? {
-        id: "alert-2",
-        metric: "Push Engagement",
-        segment: "nyc",
-        title: "Push engagement up for users in NYC",
-        description: `CTR ticked up to ${pLast.toFixed(1)}% vs ${pMean.toFixed(1)}% avg.`,
-        deltaPct: ((pLast - pMean) / pMean) * 100,
-        direction: "up",
-        severity: "medium",
-        chart: pushSpark,
-        timestamp: new Date().toISOString(),
-      }
-    : null;
-
-  return [churnAlert, pushAlert].filter(Boolean) as AlertItem[];
-}
-
-function makePlanFromContext(context: {
-  intent: string;
-  cohorts: string[];
-  channels: string[];
-  budget?: string;
-  includeIncentive?: boolean;
-}): CampaignPlan {
-  const audience: AudienceSegmentBreakdown[] = context.cohorts.map((c) => ({
-    name: c,
-    count: SEGMENT_SIZES[c] ?? Math.round(5000 + Math.random() * 5000),
-  }));
-
-  const targetMetric =
-    context.intent.includes("churn") || context.cohorts.includes("lapsed-30")
-      ? "Churn Rate"
-      : context.intent.includes("onboarding") || context.cohorts.includes("week1-drop")
-      ? "Onboarding Completion"
-      : "Engagement";
-
-  const channels = (context.channels.length ? context.channels : ["push", "email"]).map((c) => ({
-    name: c,
-    reason:
-      c === "push"
-        ? "High historical CTR for mobile-centric segments"
-        : c === "email"
-        ? "Best for richer content and tips"
-        : c === "sms"
-        ? "Urgent nudge with short copy"
-        : "In-product nudge at moment of need",
-  }));
-
-  const includeIncentive = context.includeIncentive || /discount|credit|incentive/i.test(context.intent);
-  const incentive = includeIncentive
-    ? { type: "credit", value: "$5", rationale: "ROI-positive for high-LTV segments only" }
-    : undefined;
-
-  // Governance
-  const initialCount = audience.reduce((a, s) => a + s.count, 0);
-
-  const collisionsAvoided: GovernanceResult["collisionsAvoided"] = [];
-  const intersecting = ACTIVE_CAMPAIGNS.filter((c) => c.active && c.channels.some((ch) => channels.some((cc) => cc.name === ch)));
-  intersecting.forEach((c) => {
-    const overlaps = c.segments.filter((s) => audience.some((a) => a.name === s));
-    if (overlaps.length) {
-      const impacted = overlaps.reduce((n, s) => n + (SEGMENT_SIZES[s] ?? 0), 0);
-      collisionsAvoided.push({ campaign: c.name, reason: `Overlap on ${overlaps.join(", ")}`, impactedUsers: impacted });
-    }
+  const collisionsAvoided = colliders.map(c => {
+    const overlapSegs = c.segments.filter(s => cohorts.includes(s));
+    const impacted = overlapSegs.reduce((n, s) => n + (eligibleUsersBySegment[s as keyof typeof eligibleUsersBySegment] ?? 0), 0);
+    return { campaign: c.name, reason: `Overlap on ${overlapSegs.join(', ')}`, impactedUsers: impacted };
   });
 
-  // Message fatigue: exclude users in segments with fatigue >= 5
-  const fatigueExcludedUsers = audience
-    .filter((a) => (SEGMENT_FATIGUE[a.name] ?? 0) >= 5)
-    .reduce((n, a) => n + a.count, 0);
+  const finalAudienceCount = Number((eligibleMin === Infinity ? 0 : eligibleMin).toFixed(0));
 
-  const finalAudienceCount = Math.max(0, initialCount - fatigueExcludedUsers);
+  const hypotheses = getHypotheses(metricCode, primarySeg);
+  const rationaleBullets = [
+    hypotheses[0]?.title && `${hypotheses[0].title} — ${hypotheses[0].evidence}`,
+    hypotheses[1]?.title && `${hypotheses[1].title} — ${hypotheses[1].evidence}`,
+    hypotheses[2]?.title && `${hypotheses[2].title} — ${hypotheses[2].evidence}`,
+  ].filter(Boolean) as string[];
 
-  const priorityRuleApplied = [
-    targetMetric === "Churn Rate" ? "churn-prevention prioritized over upsell" : "engagement prioritized over upsell",
-  ];
+  const channelReasons: Record<string,string> = {
+    push: 'High historical CTR for mobile-centric segments',
+    email: 'Richer content and tips',
+    sms: 'Urgent nudge with short copy',
+    inapp: 'Moment-of-need guidance',
+    discount: 'Selective incentive for ROI-positive cohorts'
+  };
 
-  const projectedLiftPct = targetMetric === "Churn Rate" ? 4.0 : targetMetric === "Onboarding Completion" ? 6.0 : 3.0;
+  const name = metricCode === 'churn_rate' ? `Churn Save – ${primarySeg}`
+    : metricCode === 'retention_30d' ? `D30 Retention – ${primarySeg}`
+    : `Push CTR – ${primarySeg}`;
 
   return {
-    name: targetMetric === "Churn Rate" ? "Churn Prevention Nudge" : targetMetric === "Onboarding Completion" ? "Onboarding Tips Push" : "Engagement Boost",
-    targetMetric,
+    name,
+    targetMetric: metricCode,
     audience,
-    channels,
-    incentive,
-    projectedLiftPct,
-    rationale:
-      targetMetric === "Churn Rate"
-        ? "Focus on early-week inactivity; combine push reminders with in-app tips."
-        : targetMetric === "Onboarding Completion"
-        ? "Address verification friction with timely nudges and optional small incentive."
-        : "Use multi-channel touchpoints to revive interest among light users.",
+    channels: chosenChannels.map((c) => ({ name: c, reason: channelReasons[c] })),
+    incentive: discountAllowed && chosenChannels.includes('discount') ? { type: 'credit', value: '$5', rationale: 'ROI-positive for high-LTV only' } : undefined,
+    projectedLiftPct: expectedImprovement,
+    rationale: rationaleBullets.slice(0,1).join(' ') || 'Data-driven channel mix based on recent performance.',
     governance: {
       collisionsAvoided,
-      fatigueExcludedUsers,
-      priorityRuleApplied,
+      fatigueExcludedUsers: 0,
+      priorityRuleApplied: [metricCode === 'churn_rate' ? 'churn-prevention > upsell' : 'engagement > upsell'],
       finalAudienceCount,
-    },
+    }
   };
 }
 
-function exportBrazeData(plan: CampaignPlan, format: "csv" | "json") {
-  const rows = Array.from({ length: Math.min(200, plan.governance.finalAudienceCount) }).map((_, i) => {
-    const id = `user_${(i + 1).toString().padStart(5, "0")}`;
-    const channel = plan.channels[0]?.name ?? "push";
-    return {
-      external_user_id: id,
-      send_channel: channel,
-      campaign_name: plan.name,
-      segment: plan.audience[0]?.name ?? "unknown",
-      incentive: plan.incentive ? `${plan.incentive.type}:${plan.incentive.value}` : "none",
-      trigger_properties: JSON.stringify({ rationale: plan.rationale }),
-    };
+function exportBrazeData(plan: CampaignPlan, format: 'csv'|'json') {
+  const segment = plan.audience[0]?.name || 'highLtv';
+  const metricCode = plan.targetMetric.includes('churn') ? 'churn_rate' : plan.targetMetric.includes('retention') ? 'retention_30d' : plan.targetMetric.includes('push') ? 'push_ctr' : 'engagement_rate';
+  const doc = buildBrazePlanJson({
+    name: plan.name,
+    priority: 9,
+    targetMetric: metricCode,
+    segment,
+    channels: plan.channels.map(c => c.name as Channel),
+    expectedImprovementPct: plan.projectedLiftPct
   });
-
-  if (format === "json") {
-    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
-    return blob;
+  if (format === 'json') {
+    return new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
   }
-  const csv = rows.length ? brazeCsv(rows) : "";
-  const blob = new Blob([csv], { type: "text/csv" });
-  return blob;
+  const rows = Array.from({ length: Math.min(200, plan.governance.finalAudienceCount || 100) }).map((_, i) => ({
+    external_user_id: `user_${(i+1).toString().padStart(5,'0')}`,
+    send_channel: plan.channels[0]?.name || 'push',
+    campaign_name: plan.name,
+    segment
+  }));
+  return new Blob([brazeCsv(rows)], { type: 'text/csv' });
 }
 
 // Component
@@ -289,10 +260,17 @@ const WinnieAIStrategistV2: React.FC = () => {
   const [sessionContext, setSessionContext] = React.useState<{ cohorts: string[]; channels: string[]; budget?: string; intent: string; includeIncentive?: boolean }>({ cohorts: [], channels: [], intent: "" });
   const [plan, setPlan] = React.useState<CampaignPlan | null>(null);
   const [approved, setApproved] = React.useState<boolean>(false);
+  const [stage, setStage] = React.useState<'idle'|'diagnose'|'design'|'govern'|'summarize'>('idle');
+  const [selectedAlertId, setSelectedAlertId] = React.useState<string | null>(null);
+  const [selectedMetricCode, setSelectedMetricCode] = React.useState<string | null>(null);
+  const [exportOpen, setExportOpen] = React.useState(false);
+  const [exportJson, setExportJson] = React.useState<string>("");
+  const [designAsked, setDesignAsked] = React.useState(false);
+  const [whyBullets, setWhyBullets] = React.useState<string[]>([]);
 
   React.useEffect(() => {
     document.title = "Winnie AI Strategist v2 | Governance & Collision Avoidance";
-    setAlerts(computeAlerts());
+    setAlerts(mapAlertsForUI());
   }, []);
 
   React.useEffect(() => {
@@ -323,13 +301,10 @@ const WinnieAIStrategistV2: React.FC = () => {
 
   function deriveCohortsFromText(t: string): string[] {
     const out: string[] = [];
-    if (/lapsed|churn/i.test(t)) out.push("lapsed-30");
-    if (/high[- ]?ltv|high value/i.test(t)) out.push("high-ltv");
-    if (/onboarding|week 1|first week|verification/i.test(t)) out.push("week1-drop");
-    if (/premium/i.test(t)) out.push("premium");
-    if (/nyc|new york/i.test(t)) out.push("nyc");
-    if (out.length === 0) out.push("all-users");
-    return Array.from(new Set(out));
+    if (/churn|save|lapse|win[- ]?back/i.test(t)) out.push('highLtv');
+    if (/onboarding|verify|week\s*1|first\s*week|completion|retention/i.test(t)) out.push('newUsers30d');
+    if (/nyc|new york/i.test(t)) out.push('nyc');
+    return Array.from(new Set(out.length ? out : ['highLtv']));
   }
 
   function deriveChannelsFromText(t: string): string[] {
@@ -337,7 +312,7 @@ const WinnieAIStrategistV2: React.FC = () => {
     if (/push/i.test(t)) channels.push("push");
     if (/email/i.test(t)) channels.push("email");
     if (/sms/i.test(t)) channels.push("sms");
-    if (/in[- ]?app/i.test(t)) channels.push("in-app");
+    if (/in[- ]?app/i.test(t)) channels.push("inapp");
     return Array.from(new Set(channels));
   }
 
